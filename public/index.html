@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece Draft Arcade</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Permanent+Marker&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="lobby-screen" class="lobby-container display-block">
+        <h1 class="lobby-title">🏴‍☠️ GRAND LINE LOBİSİ</h1>
+        <p class="lobby-subtitle">Kendi filonu kur veya var olan bir savaşa dahil ol!</p>
+        
+        <button id="create-room-btn" class="lobby-btn-create">
+            🆕 Yeni Savaş Odası Oluştur
+        </button>
+
+        <div class="lobby-divider">— VEYA —</div>
+
+        <div class="lobby-input-group">
+            <input type="text" id="room-input" placeholder="Oda Kodunu Girin (Örn: Room-1234)" class="lobby-input">
+            <button id="join-room-btn" class="lobby-btn-join">⚔️ Katıl</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="grand-line-wrapper display-none">
+        
+        <header class="game-header">
+            <h1 class="main-title">🏴‍☠️ GRAND LINE DRAFT 🏴‍☠️</h1>           
+            <div class="mode-container">
+                <label for="mode-select">SAVAŞ MODU:</label>
+                <select id="mode-select">
+                    <option value="gauntlet">⚔️ Hayatta Kalma (Gauntlet) Modu</option>
+                    <option value="matchup">⚡ Birebir Eşleşme + Kralın Hakisi Modu</option>
+                    <option value="synergy">🧪 Rol Sinerjisi Modu</option>
+                </select>
+            </div>
+
+            <div id="room-share-container" style="margin: 20px 0; padding: 10px; background-color: #f4f4f9; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #ddd;">
+            <span style="font-family: sans-serif; color: #333;">Oda Kodu: <strong id="room-code-display" style="color: #ff4500; font-size: 1.1em;">---</strong></span>
+            <button id="copy-btn" style="padding: 6px 12px; cursor: pointer; border: none; background-color: #007bff; color: white; border-radius: 4px; font-weight: bold; transition: background 0.2s;">
+                Kopyala
+            </button>
+            </div>
+
+            <button id="rules-btn" class="main-btn rules-btn-style">📜 Kurallar & Rehber</button>
+
+            <div id="rules-modal" class="modal-overlay display-none">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>🏴‍☠️ Garp'ın Denizci El Kitabı & Korsan Kanunları</h2>
+                        <button id="close-rules-btn" class="close-btn">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>🎲 1. Hibrit Savaş Algoritması</h3>
+                        <p>Karakterlerin kapışma sonuçları düz matematiksel büyüklüklere göre değil, masaüstü RPG mantığıyla hesaplanır:</p>
+                        <ul>
+                            <li><b>%85 Saf Güç (Seviye):</b> Karakterin animedeki dövüş yeteneği, dayanıklılığı ve gücünü temsil eder.</li>
+                            <li><b>%15 Ödül Değeri (Beri):</b> Karakterin dünya hükümetine oluşturduğu tehdit prestijidir.</li>
+                            <li><b>Şans Faktörü (Zar):</b> Bu iki değer birleştirilerek yüzdelik bir kazanma ihtimali çıkarılır ve arka planda 100'lük zar atılır.</li>
+                        </ul>
+
+                        <h3>👑 2. Kralın Hakisi (Haoshoku Haki) Şoku</h3>
+                        <p><b>Matchup</b> modunda, eğer iki rakip arasında <b>15 seviye veya daha fazla</b> saf güç farkı varsa, güçlü olanın iradesi rakibin bir sonraki slottaki savaşçısını <b>dövüşemeden doğrudan bayıltır</b>.</p>
+
+                        <h3>⚔️ 3. Oyun Modları Açıklamaları</h3>
+                        <ul>
+                            <li><b>Gauntlet (Sıralı Ölüm Maçı):</b> Takımlar teke tek dövüşür. Kazanan aldığı hasarla sahada kalır, kaybeden elenir.</li>
+                            <li><b>Matchup (Slot Eşleşmesi):</b> Karşılıklı slotlar kapışır. 5 dövüşün ardından en çok galibiyet alan kazanır.</li>
+                            <li><b>Synergy (Mürettebat Uyumu):</b> Karakterlerin rolleri ve bağları ekstra takım sinerjisi kazandırır.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="turn-display">Sıra: 1. Oyuncu</div>
+        </header>
+
+        <div class="game-container">
+            
+            <section class="team-box" id="p1-team">
+                <h3 class="team-title p1-color">1. OYUNCU TAYFASI</h3>
+                <div class="slots-grid">
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Kaptan:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Yardımcı Kaptan:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Sol Kol:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Savaşçı / Tank:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Destek:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="total-power">TOPLAM ÖDÜL: <span id="p1-power">0</span></div>
+            </section>
+
+            <section class="game-area">
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                </div>
+
+                <div class="control-panel">
+                    <button id="spin-btn">🎯 ÇARKI ÇEVİR</button>
+                    <div id="result-display">Mürettebatlar karşı karşıya gelmek için emir bekliyor...</div>
+                    <div id="reroll-info">Kalan Pas Hakkı: <strong id="reroll-count">5</strong></div>
+
+                    <div class="action-buttons display-none">
+                        <select id="role-select"></select>
+                        <div class="btn-group">
+                            <button id="accept-btn">🤝 TAYFAYA KAT</button>
+                            <button id="pass-btn">🎲 PAS GEÇ (<span id="reroll-count-btn">5</span>)</button>
+                        </div>
+                    </div>
+
+                    <button id="start-battle-btn" class="main-btn">⚔️ Savaşı Başlat</button>
+                    <button id="reset-btn" class="main-btn display-none">🔄 Tekrar Oyna</button>
+                </div>
+            </section>
+
+            <section class="team-box" id="p2-team">
+                <h3 class="team-title p2-color">2. OYUNCU TAYFASI</h3>
+                <div class="slots-grid">
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Kaptan:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Yardımcı Kaptan:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Sol Kol:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Savaşçı / Tank:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                    <div class="slot" data-filled="false">
+                        <span class="role-badge">Destek:</span>
+                        <div class="wanted-poster">
+                            <div class="wanted-text">WANTED</div>
+                            <div class="char-name">BOŞ</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="total-power">TOPLAM ÖDÜL: <span id="p2-power">0</span></div>
+            </section>
+
+        </div>
+    </div>
+
+    <div id="character-modal" class="modal-overlay modal-open-state display-none">
+        <div class="modal-content poster-modal">
+            <div class="modal-body">
+                
+                <div class="grand-wanted-poster">
+                    <div class="poster-header">WANTED</div>
+                    <div class="poster-image-placeholder">
+                        <span id="modal-char-name">MONKEY D. LUFFY</span>
+                    </div>
+                    <div class="poster-bounty">
+                        <span class="bounty-label">DEAD OR ALIVE</span>
+                        <span id="modal-char-bounty">3.000.000.000 ฿</span>
+                    </div>
+                </div>
+
+                <div class="modal-action-panel">
+                    <label for="modal-role-select">Tayfadaki Rolü:</label>
+                    <select id="modal-role-select"></select>
+
+                    <div class="modal-btn-group">
+                        <button id="modal-accept-btn" class="popup-btn accept">🤝 TAYFAYA KAT</button>
+                        <button id="modal-pass-btn" class="popup-btn pass">🎲 PAS GEÇ</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
