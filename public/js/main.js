@@ -303,26 +303,35 @@ function setupSocketListeners() {
         }
     });
 
-    // 👑 Savaş Sonucu Senkronizasyonu (GÜNCELLENDİ)
+    // 👑 Savaş Sonucu Senkronizasyonu (Hatalardan Arındırılmış Sürüm)
     socket.on('runBattleResult', (data) => {
-        // Sadece savaşı BAŞLAT butonuna basmayan oyuncu ekran metnini güncellesin
+        // 1. Ekran metnini eşitle (Savaşı başlat butonuna basmayan tarafın ekranı güncellensin)
         if (data.senderId !== socket.id) {
             resultDisplay.innerHTML = data.html;
         }
 
-        // 🌟 DİNAMİK KONFETİ PERSPEKTİF DÜZELTMESİ
-        if (data.kazanan === 1 || data.kazanan === 2) {
-            // Eğer kazanan oyuncu id'si benim oyuncu numarama eşitse:
-            // Ben kazandım demektir! Kendi ekranımda SOLDA (yani 1. pozisyonda) patlasın.
-            // Eğer kazanan ben değilsem: Rakip kazandı! Ekranımda SAĞDA (yani 2. pozisyonda) patlasın.
-            let konfetiYonu = (data.kazanan === myPlayerNumber) ? 1 : 2;
-            
+        // 2. Güvenli Kimlik Tespiti: Kendi oyuncu numaramızı socket.id kullanarak dinamik buluyoruz
+        let benimOyuncuNumaram = 0;
+        if (data.players) {
+            if (data.players.player1 === socket.id) benimOyuncuNumaram = 1;
+            if (data.players.player2 === socket.id) benimOyuncuNumaram = 2;
+        }
+
+        // 3. Konfeti Perspektif Ayarı (Bensem Solda[1], Rakipse Sağda[2] patlat)
+        if ((data.kazanan === 1 || data.kazanan === 2) && benimOyuncuNumaram !== 0) {
+            let konfetiYonu = (data.kazanan === benimOyuncuNumaram) ? 1 : 2;
             triggerWinnerConfetti(konfetiYonu);
         }
 
-        spinBtn.disabled = true;
-        startBattleBtn.disabled = true;
-        if (resetBtn) resetBtn.classList.replace('display-none', 'display-inline-block');
+        // 4. Butonları Kilitle ve Tekrar Oyna Butonunu Göster
+        // (Kod artık yukarıda çökmediği için bu satırlar tıkır tıkır çalışacak!)
+        if (spinBtn) spinBtn.disabled = true;
+        if (startBattleBtn) startBattleBtn.disabled = true;
+        
+        if (resetBtn) {
+            resetBtn.classList.remove('display-none');
+            resetBtn.classList.add('display-inline-block');
+        }
     });
 
     // 🔄 TAMAMLANAN ARENA SIFIRLAMA (RESET) MANTIĞI
