@@ -303,27 +303,27 @@ function setupSocketListeners() {
         }
     });
 
-    // 👑 Savaş Sonucu Senkronizasyonu (Konfeti Perspektif Tamiri)
+    // 👑 Savaş Sonucu Senkronizasyonu (Nihai Sabit Ekran Tamiri)
     socket.on('runBattleResult', (data) => {
-        // 1. Ekran metnini sadece basmayan taraf güncellesin (Senkronizasyon)
+        // 1. Ekran metnini sadece basmayan taraf güncellesin
         if (data.senderId !== socket.id) {
             resultDisplay.innerHTML = data.html;
         }
 
-        // 2. Konfeti Tetikleyicisi (Şart bloğunun dışına aldık, böylece iki tarafta da patlayacak!)
+        // 2. Konfeti Tetikleyicisi (Global Sabit Düzen)
+        // Ekranlar aynalı olmadığı için; 1 kazandıysa herkesin ekranında SOLDA (1),
+        // 2 kazandıysa herkesin ekranında SAĞDA (2) patlar!
         if (data.kazanan === 1 || data.kazanan === 2) {
-            // Eğer kazanan oyuncunun numarası benim global 'myPlayerNumber' değerime eşitse:
-            // Ben kazandım demektir! Kendi ekranımda SOLDA (1) patlasın.
-            // Eğer eşit değilse rakip kazanmıştır: Ekranımın SAĞINDA (2) patlasın.
-            let konfetiYonu = (data.kazanan === myPlayerNumber) ? 1 : 2;
-            
-            triggerWinnerConfetti(konfetiYonu);
+            triggerWinnerConfetti(data.kazanan);
         }
 
         // 3. Butonları Kilitle ve Tekrar Oyna Butonunu Aç
-        spinBtn.disabled = true;
-        startBattleBtn.disabled = true;
-        if (resetBtn) resetBtn.classList.replace('display-none', 'display-inline-block');
+        if (spinBtn) spinBtn.disabled = true;
+        if (startBattleBtn) startBattleBtn.disabled = true;
+        if (resetBtn) {
+            resetBtn.classList.remove('display-none');
+            resetBtn.classList.add('display-inline-block');
+        }
     });
 
     // 🔄 TAMAMLANAN ARENA SIFIRLAMA (RESET) MANTIĞI
