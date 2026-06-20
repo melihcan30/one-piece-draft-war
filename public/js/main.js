@@ -303,35 +303,27 @@ function setupSocketListeners() {
         }
     });
 
-    // 👑 Savaş Sonucu Senkronizasyonu (Hatalardan Arındırılmış Sürüm)
+    // 👑 Savaş Sonucu Senkronizasyonu (Konfeti Perspektif Tamiri)
     socket.on('runBattleResult', (data) => {
-        // 1. Ekran metnini eşitle (Savaşı başlat butonuna basmayan tarafın ekranı güncellensin)
+        // 1. Ekran metnini sadece basmayan taraf güncellesin (Senkronizasyon)
         if (data.senderId !== socket.id) {
             resultDisplay.innerHTML = data.html;
         }
 
-        // 2. Güvenli Kimlik Tespiti: Kendi oyuncu numaramızı socket.id kullanarak dinamik buluyoruz
-        let benimOyuncuNumaram = 0;
-        if (data.players) {
-            if (data.players.player1 === socket.id) benimOyuncuNumaram = 1;
-            if (data.players.player2 === socket.id) benimOyuncuNumaram = 2;
-        }
-
-        // 3. Konfeti Perspektif Ayarı (Bensem Solda[1], Rakipse Sağda[2] patlat)
-        if ((data.kazanan === 1 || data.kazanan === 2) && benimOyuncuNumaram !== 0) {
-            let konfetiYonu = (data.kazanan === benimOyuncuNumaram) ? 1 : 2;
+        // 2. Konfeti Tetikleyicisi (Şart bloğunun dışına aldık, böylece iki tarafta da patlayacak!)
+        if (data.kazanan === 1 || data.kazanan === 2) {
+            // Eğer kazanan oyuncunun numarası benim global 'myPlayerNumber' değerime eşitse:
+            // Ben kazandım demektir! Kendi ekranımda SOLDA (1) patlasın.
+            // Eğer eşit değilse rakip kazanmıştır: Ekranımın SAĞINDA (2) patlasın.
+            let konfetiYonu = (data.kazanan === myPlayerNumber) ? 1 : 2;
+            
             triggerWinnerConfetti(konfetiYonu);
         }
 
-        // 4. Butonları Kilitle ve Tekrar Oyna Butonunu Göster
-        // (Kod artık yukarıda çökmediği için bu satırlar tıkır tıkır çalışacak!)
-        if (spinBtn) spinBtn.disabled = true;
-        if (startBattleBtn) startBattleBtn.disabled = true;
-        
-        if (resetBtn) {
-            resetBtn.classList.remove('display-none');
-            resetBtn.classList.add('display-inline-block');
-        }
+        // 3. Butonları Kilitle ve Tekrar Oyna Butonunu Aç
+        spinBtn.disabled = true;
+        startBattleBtn.disabled = true;
+        if (resetBtn) resetBtn.classList.replace('display-none', 'display-inline-block');
     });
 
     // 🔄 TAMAMLANAN ARENA SIFIRLAMA (RESET) MANTIĞI
