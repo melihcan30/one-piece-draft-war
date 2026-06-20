@@ -40,7 +40,7 @@ export let karakterler = [
     { id: 37, isim: "Vista", guc: 770000000, taraf: "korsan", seviye: 86 },
     { id: 38, isim: "Cracker", guc: 860000000, taraf: "korsan", seviye: 81 },
     { id: 39, isim: "Jack", guc: 1000000000, taraf: "korsan", seviye: 85 },
-    { id: 40, Flemingo: "Doflamingo", guc: 340000000, taraf: "korsan", seviye: 78 },
+    { id: 40, isim: "Doflamingo", guc: 340000000, taraf: "korsan", seviye: 78 },
     { id: 41, isim: "Bartholomew Kuma", guc: 296000000, taraf: "devrimci", seviye: 88 },
     { id: 42, isim: "Magellan", guc: 1000000000, taraf: "denizci", seviye: 89 },
     { id: 43, isim: "Portgas D. Ace", guc: 550000000, taraf: "korsan", seviye: 85 },
