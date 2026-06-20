@@ -303,14 +303,23 @@ function setupSocketListeners() {
         }
     });
 
-    // Savaş Sonucu Senkronizasyonu
+    // 👑 Savaş Sonucu Senkronizasyonu (GÜNCELLENDİ)
     socket.on('runBattleResult', (data) => {
+        // Sadece savaşı BAŞLAT butonuna basmayan oyuncu ekran metnini güncellesin
         if (data.senderId !== socket.id) {
             resultDisplay.innerHTML = data.html;
-            if (data.kazanan === 1 || data.kazanan === 2) {
-                triggerWinnerConfetti(data.kazanan);
-            }
         }
+
+        // 🌟 DİNAMİK KONFETİ PERSPEKTİF DÜZELTMESİ
+        if (data.kazanan === 1 || data.kazanan === 2) {
+            // Eğer kazanan oyuncu id'si benim oyuncu numarama eşitse:
+            // Ben kazandım demektir! Kendi ekranımda SOLDA (yani 1. pozisyonda) patlasın.
+            // Eğer kazanan ben değilsem: Rakip kazandı! Ekranımda SAĞDA (yani 2. pozisyonda) patlasın.
+            let konfetiYonu = (data.kazanan === myPlayerNumber) ? 1 : 2;
+            
+            triggerWinnerConfetti(konfetiYonu);
+        }
+
         spinBtn.disabled = true;
         startBattleBtn.disabled = true;
         if (resetBtn) resetBtn.classList.replace('display-none', 'display-inline-block');

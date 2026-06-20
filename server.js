@@ -137,7 +137,16 @@ io.on('connection', (socket) => {
     // ⚔️ Savaş Başlatma ve Sonuç Dağıtma İsteği
     socket.on('requestBattle', (data) => {
         // Gelen hazır savaş sonuçlarını sadece o odadaki herkese üfle
-        io.to(socket.roomName).emit('runBattleResult', data);
+        const room = rooms[socket.roomName];
+    if (room) {
+        // Gelen verinin içine odadaki oyuncu koltuklarını da ekleyip herkese fırlatıyoruz
+        io.to(socket.roomName).emit('runBattleAction', {
+            html: data.html,
+            kazanan: data.kazanan,
+            senderId: data.senderId,
+            players: room.players // 🌟 Eklenen satır: { player1: 'socket_id', player2: 'socket_id' }
+        });
+    }
     });
 
     // 🔄 Arenayı Sıfırlama (Reset) İsteği
