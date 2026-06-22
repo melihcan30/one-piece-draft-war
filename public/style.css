@@ -738,3 +738,58 @@ body {
 .display-flex {
     display: flex !important;
 }
+
+/* Korsan Kimlik Kartları ve Giriş Alanı */
+.korsan-kayit-alani {
+    margin-bottom: 20px;
+    background: rgba(40, 25, 15, 0.85);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #bba06b;
+}
+
+.avatar-seçenekleri {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    justify-content: center;
+}
+
+.avatar-item {
+    padding: 8px 12px;
+    background: #3a2212;
+    border: 1px solid #5c3a21;
+    color: #f7e6c4;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.avatar-item:hover {
+    background: #5c3a21;
+}
+
+.avatar-item.active {
+    background: #bba06b;
+    color: #1a0f08;
+    font-weight: bold;
+    box-shadow: 0 0 10px #fbc02d;
+    border-color: #fbc02d;
+}
+
+/* Oyun İçindeki Oyuncu İsim Kartları */
+.player-identity-card {
+    background: linear-gradient(135deg, #2b1a0a, #422813);
+    border: 2px solid #bba06b;
+    padding: 10px 20px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.p-avatar { font-size: 1.5rem; }
+.p-name { color: #f7e6c4; font-weight: bold; font-size: 1.1rem; }

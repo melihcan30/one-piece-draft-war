@@ -19,53 +19,38 @@ io.on('connection', (socket) => {
     console.log(`🏴‍☠️ Bir korsan gemiye katıldı: ${socket.id}`);
 
     // 🚪 1. ADIM: OYUNCU ODAYA KATILDIĞINDA TETİKLENİR
-    socket.on('joinRoom', ({ roomName }) => {
+    socket.on('joinRoom', (data) => {
+    const roomName = data.room;
+    
+    // Oda yoksa oluştur
+    if (!rooms[roomName]) {
+        rooms[roomName] = {
+            players: {},
+            p1Data: null,
+            p2Data: null
+        };
+    }
+
+    // Boş slotlara oyuncuları yerleştir ve gelen kimlikleri kaydet
+    if (!rooms[roomName].players.player1) {
+        rooms[roomName].players.player1 = socket.id;
+        rooms[roomName].p1Data = { username: data.username, avatar: data.avatar };
         socket.join(roomName);
-        socket.roomName = roomName; // Soket kimliğine oda adını mühürlüyoruz
+    } else if (!rooms[roomName].players.player2) {
+        rooms[roomName].players.player2 = socket.id;
+        rooms[roomName].p2Data = { username: data.username, avatar: data.avatar };
+        socket.join(roomName);
+    } else {
+        socket.emit('roomFull');
+        return;
+    }
 
-        // Eğer bu oda hafızada yoksa, o odaya özel bağımsız state mimarisini sıfırdan oluştur
-        if (!rooms[roomName]) {
-            rooms[roomName] = {
-                aktifOyuncu: 1,
-                players: { player1: null, player2: null },
-                gameState: {
-                    aktifKarakterler: [],
-                    p1Takim: Array(5).fill(null),
-                    p2Takim: Array(5).fill(null),
-                    p1PasHakki: 5,
-                    p2PasHakki: 5,
-                    p1ToplamGuc: 0,
-                    p2ToplamGuc: 0,
-                    aktifOyuncu: 1,
-                    oyunBasladi: false
-                }
-            };
-        }
-
-        const room = rooms[roomName];
-
-        // Boş rolleri odaya özel olarak belirle ve oyuncuya ata
-        if (!room.players.player1) {
-            room.players.player1 = socket.id;
-            socket.emit('playerAssignment', { player: 1, color: '🔴 P1 (Sol)' });
-        } else if (!room.players.player2) {
-            room.players.player2 = socket.id;
-            socket.emit('playerAssignment', { player: 2, color: '🔵 P2 (Sağ)' });
-        } else {
-            socket.emit('playerAssignment', { player: 0, color: '👁️ İzleyici' });
-        }
-
-        // 🔄 F5 Kurtarıcısı: Sadece odaya yeni bağlanan korsana o odanın güncel durumunu teslim et
-        socket.emit('initGameState', room.gameState);
-
-        // Toplam oyuncu durumunu SADECE O ODADAKİ herkese yayınla
-        io.to(roomName).emit('roomStatus', {
-            p1Connected: !!room.players.player1,
-            p2Connected: !!room.players.player2
-        });
-
-        console.log(`⚓ Korsan ${socket.id}, [${roomName}] odasına giriş yaptı.`);
+    // Odadaki herkese güncel oyuncu kimlik haritasını fırlat
+    io.to(roomName).emit('roomStatus', {
+        p1Data: rooms[roomName].p1Data,
+        p2Data: rooms[roomName].p2Data
     });
+});
 
     // 📦 Çark İlk Yüklendiğinde Karakter Havuzunu Oda Hafızasına Al
     socket.on('syncInitialCharacters', (charactersList) => {
@@ -175,22 +160,20 @@ io.on('connection', (socket) => {
         console.log(`⚓ Korsan ayrıldı: ${socket.id}`);
         const room = rooms[socket.roomName];
         
-        if (room) {
-            if (room.players.player1 === socket.id) room.players.player1 = null;
-            if (room.players.player2 === socket.id) room.players.player2 = null;
+        // Disconnect kod bloğunun içinde oyuncuyu odadan silerken datalarını da null yap:
+    if (rooms[roomName].players.player1 === socket.id) {
+        rooms[roomName].players.player1 = null;
+        rooms[roomName].p1Data = null;
+    } else if (rooms[roomName].players.player2 === socket.id) {
+        rooms[roomName].players.player2 = null;
+        rooms[roomName].p2Data = null;
+    }
 
-            // Odadaki kalanlara yeni durumu bildir
-            io.to(socket.roomName).emit('roomStatus', {
-                p1Connected: !!room.players.player1,
-                p2Connected: !!room.players.player2
-            });
-
-            // Bellek Optimizasyonu: Eğer odada kimse kalmadıysa odayı komple sil, sunucu şişmesin
-            if (!room.players.player1 && !room.players.player2) {
-                delete rooms[socket.roomName];
-                console.log(`🗑️ [${socket.roomName}] odası tamamen boşaldığı için hafızadan silindi.`);
-            }
-        }
+// Ve kalan oyuncuya güncel durumu bildir:
+io.to(roomName).emit('roomStatus', {
+    p1Data: rooms[roomName].p1Data,
+    p2Data: rooms[roomName].p2Data
+});
     });
 });
 

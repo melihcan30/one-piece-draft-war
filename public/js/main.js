@@ -47,6 +47,17 @@ let p2TakimKarakterleri = new Array(5).fill(null);
 let myPlayerNumber = null; 
 let socket; // Global soket referansı
 
+let secilenAvatar = "🍖"; // Varsayılan avatar
+
+// Avatar seçme mekaniği tık dinleyicisi
+document.querySelectorAll('.avatar-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        document.querySelectorAll('.avatar-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        secilenAvatar = item.getAttribute('data-avatar');
+    });
+});
+
 // 🌍 URL Kontrol ve Ekran Ayrıştırma Yönetimi
 const urlParams = new URLSearchParams(window.location.search);
 let roomName = urlParams.get('room');
@@ -112,7 +123,14 @@ if (!roomName) {
 
     // Soket ve Odaları Ateşle
     socket = io();
-    socket.emit('joinRoom', { roomName: roomName });
+    // Odaya katılırken ismi ve avatarı paket yapıp gönderiyoruz
+    const usernameInput = document.getElementById('username-input').value || 'Bilinmeyen Korsan';
+
+    socket.emit('joinRoom', { 
+    room: roomName, 
+    username: usernameInput, 
+    avatar: secilenAvatar 
+    });
     console.log(`⚓ Bağlanılan Oda: ${roomName}`);
 
     // Soket İstasyonlarını Bağla
@@ -128,9 +146,24 @@ function setupSocketListeners() {
         console.log(`Rolün: ${data.color} - Oyuncu Numaran: ${myPlayerNumber}`);
     });
 
-    socket.on('roomStatus', (status) => {
-        console.log("Oda Durumu Güncellendi:", status);
-    });
+    socket.on('roomStatus', (data) => {
+    // data.p1Data ve data.p2Data bilgilerini sunucudan alıp ekrana yazıyoruz
+    if (data.p1Data) {
+        document.getElementById('p1-name-display').innerText = data.p1Data.username;
+        document.getElementById('p1-avatar-display').innerText = data.p1Data.avatar;
+    } else {
+        document.getElementById('p1-name-display').innerText = "Korsan 1 Bekleniyor...";
+        document.getElementById('p1-avatar-display').innerText = "🏴‍☠️";
+    }
+
+    if (data.p2Data) {
+        document.getElementById('p2-name-display').innerText = data.p2Data.username;
+        document.getElementById('p2-avatar-display').innerText = data.p2Data.avatar;
+    } else {
+        document.getElementById('p2-name-display').innerText = "Korsan 2 Bekleniyor...";
+        document.getElementById('p2-avatar-display').innerText = "🏴‍☠️";
+    }
+});
 
     socket.on('initGameState', (serverState) => {
         console.log("⚓ Sunucudan gelen oyun durumu alındı:", serverState);
