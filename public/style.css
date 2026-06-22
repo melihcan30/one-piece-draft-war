@@ -1,795 +1,249 @@
-/* 🌊 GLOBAL AYARLAR & ARKA PLAN */
+/* Genel Stil Reset ve Korsan Teması Renkleri */
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-    background: radial-gradient(circle, #1a252f 0%, #0f171e 100%);
-    color: #fff;
+    background-color: #0f0a06;
+    background-image: radial-gradient(circle, #1a1008 0%, #0a0502 100%);
+    color: #f7e6c4;
     min-height: 100vh;
-    padding: 20px;
-}
-
-.grand-line-wrapper {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* 🏴‍☠️ ÜST BAŞLIK & MOD SEÇİMİ */
-.game-header {
-    text-align: center;
-    margin-bottom: 30px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid #f1c40f;
-    box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
-}
-
-.main-title {
-    font-family: 'Cinzel', serif;
-    font-size: 2.5rem;
-    color: #f1c40f;
-    text-shadow: 3px 3px 0px #c0392b;
-    margin-bottom: 15px;
-}
-
-.mode-container {
-    margin-bottom: 10px;
-}
-
-.mode-container label {
-    font-weight: bold;
-    color: #e74c3c;
-    margin-right: 10px;
-}
-
-#mode-select {
-    background: #2c3e50;
-    color: white;
-    border: 2px solid #f1c40f;
-    padding: 8px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-#turn-display {
-    font-family: 'Permanent Marker', cursive;
-    font-size: 1.4rem;
-    color: #2ecc71;
-    margin-top: 10px;
-}
-
-/* ⚔️ OYUN ALANI (3 SÜTUNLU SİSTEM) */
-.game-container {
-    display: grid;
-    grid-template-columns: 320px 1fr 320px;
-    gap: 20px;
-    align-items: start;
-}
-
-/* 📜 TAKIM KUTULARI & SLOTLAR */
-.team-box {
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 12px;
-    padding: 15px;
-    border: 2px solid #7f8c8d;
-}
-
-.team-title {
-    text-align: center;
-    font-family: 'Cinzel', serif;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-    padding-bottom: 5px;
-    border-bottom: 2px dashed #7f8c8d;
-}
-
-.p1-color { color: #e74c3c; }
-.p2-color { color: #3498db; }
-
-.slots-grid {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* 🖼️ MINI WANTED POSTER SLOTLARI */
-.slot {
-    background: #e6dfd3; /* Eskitilmiş kağıt rengi */
-    color: #2c3e50;
-    padding: 10px;
-    border-radius: 8px;
-    border: 3px solid #b3a286;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.role-badge {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #7f8c8d;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-}
-
-.wanted-poster {
-    text-align: center;
-}
-
-.wanted-text {
-    font-family: 'Cinzel', serif;
-    font-weight: 900;
-    font-size: 1.1rem;
-    letter-spacing: 2px;
-    color: #7f4f24;
-}
-
-.char-name {
-    font-family: 'Permanent Marker', cursive;
-    font-size: 1.1rem;
-    margin-top: 5px;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
     justify-content: center;
-}
-
-.total-power {
-    text-align: center;
-    margin-top: 15px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    color: #f1c40f;
-}
-
-/* 🛠️ BÖLÜM 1: BİRE BİR MODU KAZANAN / KAYBEDEN GLOW EFEKTLERİ */
-/* JavaScript'in ekleyebileceği tüm olası Türkçe ve İngilizce class senaryoları kapsandı */
-.slot.winner, .slot.kazanan {
-    border-color: #2ecc71 !important;
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.8) !important;
-    background: #d4f8e6 !important; /* Canlı yeşil esintili eskitme kağıt */
-}
-
-.slot.winner .wanted-text, .slot.kazanan .wanted-text {
-    color: #27ae60 !important;
-}
-
-.slot.loser, .slot.kaybeden {
-    border-color: #e74c3c !important;
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.8) !important;
-    background: #fcdbd9 !important; /* Canlı kırmızı esintili eskitme kağıt */
-}
-
-.slot.loser .wanted-text, .slot.kaybeden .wanted-text {
-    color: #c0392b !important;
-}
-
-/* Karakter bayıldıysa (isteğe bağlı destek) */
-.slot.baygin, .slot.bayildi {
-    opacity: 0.6;
-    filter: grayscale(50%);
-    border-color: #7f8c8d !important;
-    box-shadow: none !important;
-}
-
-
-/* 🔮 MERKEZ ALAN & ÇARK */
-.game-area {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
     padding: 20px;
-    border-radius: 12px;
 }
 
-.wheel-container {
-    position: relative;
+.game-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: auto;
+}
+
+.hidden { display: none !important; }
+
+/* Premium Korsan Kartı Tasarımı (Notion & Game Mix) */
+.pirate-card {
+    background: rgba(23, 15, 10, 0.95);
+    border: 2px solid #bba06b;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(187, 160, 107, 0.1);
+    text-align: center;
+}
+
+.lobby-box { max-width: 500px; margin: auto; }
+
+.game-title {
+    font-size: 2rem;
+    color: #fbc02d;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.game-subtitle {
+    font-size: 0.9rem;
+    color: #8e7a5c;
     margin-bottom: 25px;
 }
 
-/* 🛠️ BÖLÜM 2: ÇARK SEÇİM OKU VE TİTREME (VIBRATION) AKTİFA SYONU */
-.wheel-pointer {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 30px solid #e74c3c;
-    z-index: 99;
-    filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));
-    transform-origin: top center; /* Titremenin tepe noktasından pürüzsüz yapılması için */
-    transition: transform 0.1s ease;
-}
-
-/* Mekanik titreme animasyonu tanımı */
-@keyframes pointer-vibration {
-    0% { transform: translateX(-50%) rotate(0deg); }
-    25% { transform: translateX(-50%) rotate(-12deg); }
-    50% { transform: translateX(-50%) rotate(10deg); }
-    75% { transform: translateX(-50%) rotate(-8deg); }
-    100% { transform: translateX(-50%) rotate(0deg); }
-}
-
-/* JS çarkı döndürürken bu iki class'tan birini tetiklerse ibre titreyecek */
-.wheel-pointer.pointer-spinning,
-.wheel-pointer.spinning,
-.pointer-spinning {
-    animation: pointer-vibration 0.1s infinite ease-in-out;
-    border-top-color: #ff1e43 !important; /* Dönerken daha parlak bir kırmızı */
-}
-
-#wheelCanvas {
-    border-radius: 50%;
-    border: 8px solid #f1c40f;
-    box-shadow: 0 0 30px rgba(241, 196, 15, 0.4);
-    transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
-}
-
-/* 🕹️ KONTROL PANELİ & RETRO BUTONLAR */
-.control-panel {
-    width: 100%;
-    max-width: 450px;
-    text-align: center;
-}
-
-#spin-btn {
-    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
-    color: #000;
-    font-weight: bold;
-    font-size: 1.3rem;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
-    width: 100%;
-    transition: all 0.2s;
-    margin-bottom: 15px;
-}
-
-#spin-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 7px 20px rgba(243, 156, 18, 0.6);
-}
-
-#spin-btn:disabled {
-    background: #7f8c8d;
-    color: #bdc3c7;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* 🛠️ BÖLÜM 3: SAVAŞ SONUÇLARININ YATAYDA TAŞMASINI VE KAYMASINI ÖNLEYEN DÜZENLEME */
-#result-display {
-    background: #2c3e50;
-    border: 2px solid #34495e;
-    padding: 15px;
-    border-radius: 8px;
-    min-height: 70px;
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column; /* Yazıların yan yana sıkışmasını engeller, alt alta düzgünce sıralar */
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    gap: 6px; /* Satırlar arası temiz boşluk bırakır */
-    width: 100%;
-    height: auto;
-    overflow: hidden;
-    text-align: center;
-}
-
-/* İçeriye inject edilen metin satırları veya div'lerin düzeni */
-#result-display span, 
-#result-display p, 
-#result-display div {
-    display: block;
-    width: 100%;
-    white-space: normal; /* Yan yana uzayıp ekranı delmesini engeller, alt satıra kırar */
-    word-wrap: break-word;
-}
-
-#reroll-info {
-    font-size: 0.9rem;
-    color: #bdc3c7;
-    margin-bottom: 15px;
-}
-
-/* 🤝 AKSİYON SEÇENEKLERİ (TAYFAYA KAT / PAS) */
-.action-buttons {
-    background: rgba(0,0,0,0.4);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    flex-direction: column;
-    gap: 10px;
-}
-
-#role-select {
-    width: 100%;
-    padding: 8px;
-    background: #34495e;
-    color: white;
-    border: 1px solid #7f8c8d;
-    border-radius: 4px;
-}
-
-.btn-group {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
-
-#accept-btn {
-    flex: 1;
-    background: #2ecc71;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-#pass-btn {
-    flex: 1;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* ⚔️ SAVAŞI BAŞLAT & TEKRAR OYNA BUTONLARI */
-.main-btn {
-    width: 100%;
-    padding: 14px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: all 0.2s;
-}
-
-#start-battle-btn {
-    background: linear-gradient(135deg, #c0392b 0%, #962d22 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4);
-}
-
-#start-battle-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(192, 57, 43, 0.6);
-}
-
-#start-battle-btn:disabled {
-    background: #555;
-    color: #888;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-#reset-btn {
-    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
-}
-
-/* 📜 POP-UP (MODAL) SİSTEMİ ALTYAPISI */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.modal-content {
-    background: #2c3e50;
-    color: #ecf0f1;
-    width: 90%;
-    max-width: 650px;
-    max-height: 80vh;
-    border-radius: 12px;
-    border: 3px solid #f1c40f;
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
-    overflow-y: auto;
-    animation: modalFadeIn 0.3s ease-in-out;
-}
-
-.modal-header {
-    background: #1a252f;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #f1c40f;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: #f1c40f;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: #bdc3c7;
-    font-size: 2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.close-btn:hover { color: #e74c3c; }
-.modal-body { padding: 20px; line-height: 1.6; }
-
-@keyframes modalFadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* Pop-up Arka Plan Karartması */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-/* Pop-up Kutusu */
-.modal-content {
-    background: #2c3e50;
-    color: #ecf0f1;
-    width: 90%;
-    max-width: 650px;
-    max-height: 80vh;
-    border-radius: 12px;
-    border: 3px solid #f1c40f;
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
-    overflow-y: auto;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.modal-header {
-    background: #1a252f;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #f1c40f;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: #f1c40f;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: #bdc3c7;
-    font-size: 2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.close-btn:hover {
-    color: #e74c3c;
-}
-
-.modal-body {
-    padding: 20px;
-    line-height: 1.6;
-}
-
-.modal-body h3 {
-    color: #3498db;
-    margin-top: 20px;
-    border-bottom: 1px solid #34495e;
-    padding-bottom: 5px;
-}
-
-.modal-body ul {
-    padding-left: 20px;
-}
-
-.modal-body li {
-    margin-bottom: 8px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* 📜 GRAND WANTED POPUP STİLLERİ */
-.poster-modal {
-    max-width: 420px;
-    background: #eedfae; /* Gerçek parşömen/ilan kağıdı rengi */
-    border: 8px solid #846843;
-    box-shadow: 0 0 30px rgba(241, 196, 15, 0.5), inset 0 0 20px rgba(0,0,0,0.3);
-    color: #2c1a11;
-}
-
-.grand-wanted-poster {
-    text-align: center;
-    padding: 10px;
-    border: 2px solid #a3855c;
-    margin-bottom: 20px;
-}
-
-.poster-header {
-    font-family: 'Cinzel', serif;
-    font-weight: 900;
-    font-size: 2.8rem;
-    letter-spacing: 6px;
-    color: #4a321a;
-    text-shadow: 1px 1px 0px #fff;
-    line-height: 1;
-    margin-bottom: 10px;
-}
-
-.poster-image-placeholder {
-    width: 100%;
-    height: 240px;
-    background: #dfcf99;
-    border: 3px solid #705531;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Permanent Marker', cursive;
-    font-size: 1.8rem;
-    color: #3e2713;
-    padding: 15px;
-    text-align: center;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
-}
-
-.poster-bounty {
-    margin-top: 15px;
-    font-family: 'Cinzel', serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.bounty-label {
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 3px;
-    color: #5c4328;
-}
-
-#modal-char-bounty {
-    font-family: 'Permanent Marker', cursive;
-    font-size: 1.5rem;
-    color: #1e150d;
-    margin-top: 2px;
-}
-
-/* Aksiyon Paneli ve Butonlar */
-.modal-action-panel {
-    background: rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px dashed #a3855c;
-}
-
-.modal-action-panel label {
-    font-weight: bold;
-    color: #4a321a;
-    display: block;
-    margin-bottom: 5px;
-}
-
-#modal-role-select {
-    width: 100%;
-    padding: 10px;
-    background: #3e2713;
-    color: #fff;
-    border: 2px solid #846843;
-    border-radius: 6px;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.modal-btn-group {
-    display: flex;
-    gap: 12px;
-}
-
-.popup-btn {
-    flex: 1;
-    padding: 12px;
-    font-size: 1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: white;
-}
-
-.popup-btn.accept { background: #27ae60; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
-.popup-btn.accept:hover { background: #2ecc71; transform: translateY(-2px); }
-
-.popup-btn.pass { background: #c0392b; box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3); }
-.popup-btn.pass:hover { background: #e74c3c; transform: translateY(-2px); }
-
-/* 🚪 KORSAN LOBİSİ TASARIMI */
-.lobby-container {
-    max-width: 500px;
-    margin: 100px auto;
-    text-align: center;
-    background: #2c3e50;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    border: 2px solid #f39c12;
-}
-
-.lobby-title {
-    color: #f1c40f;
-    margin-bottom: 10px;
-}
-
-.lobby-subtitle {
-    color: #b2bec3;
-    margin-bottom: 30px;
-}
-
-.lobby-btn-create {
-    width: 100%;
-    padding: 15px;
-    background: #27ae60;
-    color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    transition: 0.2s;
-}
-
-.lobby-btn-create:hover {
-    background: #218c53;
-}
-
-.lobby-divider {
-    color: #7f8c8d;
-    margin-bottom: 20px;
-}
-
-.lobby-input-group {
-    display: flex;
-    gap: 10px;
-}
-
-.lobby-input {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    border: 2px solid #7f8c8d;
-    background: #34495e;
-    color: white;
-    font-size: 1rem;
-    text-align: center;
-}
-
-.lobby-btn-join {
-    padding: 12px 25px;
-    background: #2980b9;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.lobby-btn-join:hover {
-    background: #1f6391;
-}
-
-/* 📜 EKSTRA KONTROL VE MODAL SINIFLARI */
-.rules-btn-style {
-    background: #706fd3;
-    color: white;
-}
-
-.display-none {
-    display: none !important;
-}
-
-.display-block {
-    display: block !important;
-}
-
-.display-flex {
-    display: flex !important;
-}
-
-/* Korsan Kimlik Kartları ve Giriş Alanı */
+/* Giriş Alanı Tasarımı */
 .korsan-kayit-alani {
-    margin-bottom: 20px;
-    background: rgba(40, 25, 15, 0.85);
+    background: #1a110a;
     padding: 15px;
     border-radius: 8px;
-    border: 2px solid #bba06b;
+    border: 1px solid #422a18;
+    margin-bottom: 20px;
+    text-align: left;
 }
 
-.avatar-seçenekleri {
+.input-group {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.input-group label, .avatar-secici-grup label {
+    font-size: 0.85rem;
+    color: #bba06b;
+    font-weight: bold;
+}
+
+#username-input, #room-input {
+    background: #0f0a06;
+    border: 1px solid #5c3e26;
+    padding: 10px;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+#username-input:focus, #room-input:focus {
+    border-color: #fbc02d;
+    box-shadow: 0 0 8px rgba(251, 192, 45, 0.3);
+}
+
+/* Avatar Seçim Alanı */
+.avatar-secenekleri {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
     margin-top: 8px;
-    justify-content: center;
 }
 
 .avatar-item {
-    padding: 8px 12px;
-    background: #3a2212;
-    border: 1px solid #5c3a21;
-    color: #f7e6c4;
+    padding: 10px;
+    background: #26190e;
+    border: 1px solid #422a18;
+    color: #d1be9c;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
 }
 
-.avatar-item:hover {
-    background: #5c3a21;
-}
-
+.avatar-item:hover { background: #362415; }
 .avatar-item.active {
     background: #bba06b;
     color: #1a0f08;
     font-weight: bold;
-    box-shadow: 0 0 10px #fbc02d;
+    box-shadow: 0 0 12px rgba(251, 192, 45, 0.4);
     border-color: #fbc02d;
 }
 
-/* Oyun İçindeki Oyuncu İsim Kartları */
-.player-identity-card {
-    background: linear-gradient(135deg, #2b1a0a, #422813);
-    border: 2px solid #bba06b;
-    padding: 10px 20px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
+/* Butonlar */
+.room-actions {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
-    margin-bottom: 10px;
-    font-family: 'Courier New', Courier, monospace;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-.p-avatar { font-size: 1.5rem; }
-.p-name { color: #f7e6c4; font-weight: bold; font-size: 1.1rem; }
+.pirate-btn {
+    background: linear-gradient(180deg, #d4af37 0%, #aa7c11 100%);
+    color: #1a0f08;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.pirate-btn:hover { filter: brightness(1.2); }
+.pirate-btn:active { transform: scale(0.98); }
+
+/* Üst Kimlik Paneli (VS) */
+.identity-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(23, 15, 10, 0.9);
+    border: 2px solid #bba06b;
+    padding: 12px 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.player-identity-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.p-avatar { font-size: 2rem; }
+.p-info small { color: #8e7a5c; display: block; font-size: 0.75rem; font-weight: bold; }
+.p-name { color: #fff; font-weight: bold; font-size: 1.1rem; }
+
+.vs-badge {
+    background: #fbc02d;
+    color: #100a05;
+    font-weight: 900;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-style: italic;
+    box-shadow: 0 0 10px rgba(251, 192, 45, 0.5);
+}
+
+/* Savaş Arenası Düzeni */
+.battle-arena {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.slots-container {
+    flex: 1;
+    background: rgba(26, 17, 10, 0.8);
+    border: 1px solid #422a18;
+    padding: 15px;
+    border-radius: 8px;
+    min-height: 400px;
+}
+
+.slots-container h3 {
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #bba06b;
+    border-bottom: 1px solid #422a18;
+    padding-bottom: 8px;
+}
+
+.slot {
+    background: #0f0a06;
+    border: 1px dashed #5c3e26;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    text-align: center;
+    color: #6d563e;
+    font-size: 0.9rem;
+}
+
+/* Çark Alanı ve Pointer */
+.wheel-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.canvas-container {
+    position: relative;
+    padding: 10px;
+    background: #1a110a;
+    border-radius: 50%;
+    border: 4px solid #bba06b;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    color: #fbc02d;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+.spin-glow {
+    animation: pulseGlow 2s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.4); }
+    100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.8); }
+}
