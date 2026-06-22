@@ -9,7 +9,7 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// public klasöründeki statik dosyaları (html, css, js) dışarıya açıyoruz
+// public klasöründeki statik dosyaları dışarıya açıyoruz
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 🏴‍☠️ TÜM ODALARI VE ODALARA ÖZEL OYUN DURUMLARINI TUTACAK DEV HARİTA
@@ -19,62 +19,65 @@ io.on('connection', (socket) => {
     console.log(`🏴‍☠️ Bir korsan gemiye katıldı: ${socket.id}`);
 
     // 🚪 1. ADIM: OYUNCU ODAYA KATILDIĞINDA TETİKLENİR
-    // 🚪 1. ADIM: OYUNCU ODAYA KATILDIĞINDA TETİKLENİR
-socket.on('joinRoom', (data) => {
-    const roomName = data.room;
-    socket.roomName = roomName; // 🌟 DÜZELTME 1: Soket nesnesine oda adını bağla (Diğer eventler erişebilsin)
-    
-    // Oda yoksa oluştur ve oyunun hafıza kartını fabrika ayarlarıyla aç
-    if (!rooms[roomName]) {
-        rooms[roomName] = {
-            players: { player1: null, player2: null },
-            p1Data: null,
-            p2Data: null,
-            aktifOyuncu: 1, // Sıra 1. oyuncuyla başlar
-            gameState: {
-                aktifKarakterler: [],
-                p1PasHakki: 5,
-                p2PasHakki: 5,
-                oyunBasladi: false
-            }
-        };
-    }
+    socket.on('joinRoom', (data) => {
+        const roomName = data.room;
+        socket.roomName = roomName; // 🌟 EN KRİTİK DÜZELTME: Sokete oda adını bağlıyoruz!
+        
+        // Oda yoksa oluştur ve tam oyun şablonunu hafızaya al
+        if (!rooms[roomName]) {
+            rooms[roomName] = {
+                players: { player1: null, player2: null },
+                p1Data: null,
+                p2Data: null,
+                aktifOyuncu: 1,
+                gameState: {
+                    aktifKarakterler: [],
+                    p1Takim: Array(5).fill(null),
+                    p2Takim: Array(5).fill(null),
+                    p1PasHakki: 5,
+                    p2PasHakki: 5,
+                    p1ToplamGuc: 0,
+                    p2ToplamGuc: 0,
+                    aktifOyuncu: 1,
+                    oyunBasladi: false
+                }
+            };
+        }
 
-    // Boş slotlara oyuncuları yerleştir ve kimlik ataması (playerAssignment) yap
-    if (!rooms[roomName].players.player1) {
-        rooms[roomName].players.player1 = socket.id;
-        rooms[roomName].p1Data = { username: data.username, avatar: data.avatar };
-        socket.join(roomName);
-        
-        // 🌟 DÜZELTME 2: İstemciye 1. Oyuncu (Kırmızı) olduğunu bildir
-        socket.emit('playerAssignment', { player: 1, color: '🔴 Kırmızı' });
-        
-    } else if (!rooms[roomName].players.player2) {
-        rooms[roomName].players.player2 = socket.id;
-        rooms[roomName].p2Data = { username: data.username, avatar: data.avatar };
-        socket.join(roomName);
-        
-        // 🌟 DÜZELTME 2: İstemciye 2. Oyuncu (Mavi) olduğunu bildir
-        socket.emit('playerAssignment', { player: 2, color: '🔵 Mavi' });
-        
-    } else {
-        socket.emit('roomFull');
-        return;
-    }
+        let assignedPlayer = null;
+        let playerColor = "";
 
-    // Odadaki herkese güncel oyuncu kimlik haritasını fırlat
-    io.to(roomName).emit('roomStatus', {
-        p1Data: rooms[roomName].p1Data,
-        p2Data: rooms[roomName].p2Data
+        // Boş slotlara oyuncuları yerleştir ve gelen kimlikleri kaydet
+        if (!rooms[roomName].players.player1) {
+            rooms[roomName].players.player1 = socket.id;
+            rooms[roomName].p1Data = { username: data.username, avatar: data.avatar };
+            socket.join(roomName);
+            assignedPlayer = 1;
+            playerColor = "Kırmızı";
+        } else if (!rooms[roomName].players.player2) {
+            rooms[roomName].players.player2 = socket.id;
+            rooms[roomName].p2Data = { username: data.username, avatar: data.avatar };
+            socket.join(roomName);
+            assignedPlayer = 2;
+            playerColor = "Mavi";
+        } else {
+            socket.emit('roomFull');
+            return;
+        }
+
+        // 🌟 Oyuncunun kendisine hangi oyuncu (1 veya 2) olduğunu bildiriyoruz
+        socket.emit('playerAssignment', { player: assignedPlayer, color: playerColor });
+
+        // Odadaki herkese güncel oyuncu kimlik kartlarını fırlat
+        io.to(roomName).emit('roomStatus', {
+            p1Data: rooms[roomName].p1Data,
+            p2Data: rooms[roomName].p2Data
+        });
+
+        // 🌟 Giriş yapan oyuncunun ekranına mevcut oyun durumunu üfle (Çarkın dolması için!)
+        socket.emit('initGameState', rooms[roomName].gameState);
     });
 
-    // 🌟 DÜZELTME 3: Giriş yapan tarayıcıya mevcut oyun durumunu gönder (Böylece initGameState tetiklenir)
-    socket.emit('initGameState', {
-        oyunBasladi: rooms[roomName].gameState.oyunBasladi,
-        aktifKarakterler: rooms[roomName].gameState.aktifKarakterler,
-        aktifOyuncu: rooms[roomName].aktifOyuncu
-    });
-});
     // 📦 Çark İlk Yüklendiğinde Karakter Havuzunu Oda Hafızasına Al
     socket.on('syncInitialCharacters', (charactersList) => {
         const room = rooms[socket.roomName];
@@ -83,20 +86,19 @@ socket.on('joinRoom', (data) => {
         if (room.gameState.aktifKarakterler.length === 0 && !room.gameState.oyunBasladi) {
             room.gameState.aktifKarakterler = charactersList;
             room.gameState.oyunBasladi = true;
+            // Diğer oyunculara da güncel durumu fırlat
+            io.to(socket.roomName).emit('initGameState', room.gameState);
         }
     });
 
-    // 🔮 Çarkı Döndürme İsteği (Güvenlik Kontrollü)
+    // 🔮 Çarkı Döndürme İsteği
     socket.on('requestSpin', () => {
         const room = rooms[socket.roomName];
         if (!room) return;
 
-        // Güvenlik Kontrolü: İsteği atan kişi gerçekten bu odada sırası gelen oyuncu mu?
         const yetkiliSocketId = room.players[`player${room.aktifOyuncu}`];
-        
         if (socket.id === yetkiliSocketId) {
             const randomDegree = Math.floor(Math.random() * 360);
-            // Dereceyi sadece O ODADAKİ oyunculara gönderir
             io.to(socket.roomName).emit('runSpinAnimation', { randomDegree: randomDegree });
         }
     });
@@ -107,11 +109,9 @@ socket.on('joinRoom', (data) => {
         if (!room) return;
 
         if (socket.id === room.players[`player${room.aktifOyuncu}`]) {
-            // Oda hafızasındaki pas hakkını düşür
             if (room.aktifOyuncu === 1) room.gameState.p1PasHakki--;
             else room.gameState.p2PasHakki--;
 
-            // Eylemi sadece o odadakilere fırlat
             io.to(socket.roomName).emit('runPassAction');
         }
     });
@@ -122,7 +122,6 @@ socket.on('joinRoom', (data) => {
         if (!room) return;
 
         if (socket.id === room.players[`player${room.aktifOyuncu}`]) {
-            // Seçilen karakteri oda hafızasından sil (F5 koruması)
             if (data.charId) {
                 room.gameState.aktifKarakterler = room.gameState.aktifKarakterler.filter(c => c.id !== data.charId);
             }
@@ -137,22 +136,20 @@ socket.on('joinRoom', (data) => {
 
         if (socket.id === room.players[`player${data.previousPlayer}`]) {
             room.aktifOyuncu = data.nextPlayer;
-            room.gameState.aktifOyuncu = data.nextPlayer; // Oda hafızasındaki sırayı eşitle
+            room.gameState.aktifOyuncu = data.nextPlayer;
             console.log(`🔄 [${socket.roomName}] Odasında Sıra Değişti: Artık P${room.aktifOyuncu}'de`);
         }
     });
 
     // ⚔️ Savaş Başlatma ve Sonuç Dağıtma İsteği
     socket.on('requestBattle', (data) => {
-        // Gelen hazır savaş sonuçlarını sadece o odadaki herkese üfle
         const room = rooms[socket.roomName];
         if (room) {
-            // Gelen verinin içine odadaki oyuncu koltuklarını da ekleyip herkese fırlatıyoruz
             io.to(socket.roomName).emit('runBattleResult', {
                 html: data.html,
                 kazanan: data.kazanan,
                 senderId: data.senderId,
-                players: room.players 
+                players: room.players
             });
         }
     });
@@ -162,7 +159,6 @@ socket.on('joinRoom', (data) => {
         const room = rooms[socket.roomName];
         if (!room) return;
 
-        // Sadece o odanın durumunu fabrika ayarlarına döndür
         room.aktifOyuncu = 1;
         room.gameState = {
             aktifKarakterler: [],
@@ -179,13 +175,12 @@ socket.on('joinRoom', (data) => {
     });
 
     // Oyuncu ayrıldığında koltuğunu boşalt
-    // Oyuncu ayrıldığında koltuğunu boşalt
     socket.on('disconnect', () => {
-        console.log(`⚓ Korsan ayrıldı: ${socket.id}`);
-        const roomName = socket.roomName; // 🌟 DÜZELTME: Tanımsız roomName hatasını önlemek için socket'ten alıyoruz
-    
+        const roomName = socket.roomName; // 🌟 DÜZELTME: Tanımsız roomName yerine socket.roomName kullanıyoruz
         if (!roomName || !rooms[roomName]) return;
-    
+
+        console.log(`⚓ Korsan ayrıldı: ${socket.id} (Oda: ${roomName})`);
+        
         if (rooms[roomName].players.player1 === socket.id) {
             rooms[roomName].players.player1 = null;
             rooms[roomName].p1Data = null;

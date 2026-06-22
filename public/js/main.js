@@ -70,6 +70,11 @@ if (!roomName) {
     // Yeni Oda Oluşturma Butonu Dinleyicisi
     if (createRoomBtn) {
         createRoomBtn.addEventListener('click', () => {
+            const usernameVal = document.getElementById('username-input').value.trim();
+            // 🌟 İsim ve avatarı sayfa yenilenmeden önce hafızaya kilitliyoruz
+            sessionStorage.setItem('korsanAdi', usernameVal || 'Kaptan');
+            sessionStorage.setItem('korsanAvatar', secilenAvatar);
+
             const randomRoom = "Room-" + Math.floor(1000 + Math.random() * 9000);
             urlParams.set('room', randomRoom);
             window.location.search = urlParams.toString();
@@ -79,6 +84,11 @@ if (!roomName) {
     // Var Olan Odaya Katılma Dinleyicisi
     if (joinRoomBtn) {
         joinRoomBtn.addEventListener('click', () => {
+            const usernameVal = document.getElementById('username-input').value.trim();
+            // 🌟 İsim ve avatarı sayfa yenilenmeden önce hafızaya kilitliyoruz
+            sessionStorage.setItem('korsanAdi', usernameVal || 'Kaptan');
+            sessionStorage.setItem('korsanAvatar', secilenAvatar);
+
             const girilenOda = roomInput.value.trim();
             if (girilenOda) {
                 urlParams.set('room', girilenOda);
@@ -93,7 +103,23 @@ if (!roomName) {
     if (lobbyScreen) lobbyScreen.classList.replace('display-block', 'display-none');
     if (gameScreen) gameScreen.classList.replace('display-none', 'display-block');
 
-    // 🌟 Oda Kodunu Ekranda Gösterme ve Kopyalama Butonu Mantığı
+    // 🌟 YENİ DÜZELTME: Yenilenen sayfada hafızadaki ismi geri çekip input'a yazıyoruz
+    const kayitliAd = sessionStorage.getItem('korsanAdi') || 'Kaptan';
+    const kayitliAvatar = sessionStorage.getItem('korsanAvatar') || '🍖';
+
+    const uInput = document.getElementById('username-input');
+    if (uInput) uInput.value = kayitliAd;
+    secilenAvatar = kayitliAvatar;
+
+    // Arayüzdeki aktif bayrağı güncelle
+    document.querySelectorAll('.avatar-item').forEach(item => {
+        if (item.getAttribute('data-avatar') === secilenAvatar) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
     const roomCodeDisplay = document.getElementById('room-code-display');
     const copyBtn = document.getElementById('copy-btn');
 
@@ -105,41 +131,31 @@ if (!roomName) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(roomName)
                 .then(() => {
-                    copyBtn.innerText = 'Kopyandı! ✓';
+                    copyBtn.innerText = 'Kopyalandı! ✓';
                     copyBtn.style.backgroundColor = '#28a745';
                     setTimeout(() => {
                         copyBtn.innerText = 'Kopyala';
                         copyBtn.style.backgroundColor = '#007bff';
                     }, 2000);
                 })
-                .catch(err => {
-                    console.error('Kod kopyalanamadı: ', err);
-                });
+                .catch(err => console.error('Kod kopyalanamadı: ', err));
         });
     }
 
-    // 🔌 SOKET BAĞLANTISINI ATEŞLE
+    // Soket ve Odaları Ateşle
     socket = io();
 
-    // 🛠️ DÜZELTME 1: Önce dinleyicileri bağla ki localhost veriyi anında döndürdüğünde kaçırmayalım!
-    setupSocketListeners();
-
-    // 🛠️ DÜZELTME 2: Sunucudan yanıt gelene kadar çark boş kalmasın, yerel verilerle ilk çizimi yap
-    aktifKarakterler = [...karakterler];
-    drawWheel();
-
-    // Odaya katılırken ismi ve avatarı paket yapıp şimdi güvenle gönderiyoruz
-    const usernameInput = document.getElementById('username-input').value || 'Bilinmeyen Korsan';
-
+    // 🌟 Artık sıfırlanan Kaptan yazısını değil, hafızadaki gerçek ismi gönderiyoruz!
     socket.emit('joinRoom', { 
         room: roomName, 
-        username: usernameInput, 
+        username: kayitliAd, 
         avatar: secilenAvatar 
     });
     console.log(`⚓ Bağlanılan Oda: ${roomName}`);
+
+    // Soket İstasyonlarını Bağla
+    setupSocketListeners();
 }
-
-
 
 // 5️⃣ ADIM: Soket İstasyon Dinleyicileri Fonksiyonu
 function setupSocketListeners() {
@@ -149,23 +165,22 @@ function setupSocketListeners() {
     });
 
     socket.on('roomStatus', (data) => {
-    // data.p1Data ve data.p2Data bilgilerini sunucudan alıp ekrana yazıyoruz
-    if (data.p1Data) {
-        document.getElementById('p1-name-display').innerText = data.p1Data.username;
-        document.getElementById('p1-avatar-display').innerText = data.p1Data.avatar;
-    } else {
-        document.getElementById('p1-name-display').innerText = "Korsan 1 Bekleniyor...";
-        document.getElementById('p1-avatar-display').innerText = "🏴‍☠️";
-    }
+        if (data.p1Data) {
+            document.getElementById('p1-name-display').innerText = data.p1Data.username;
+            document.getElementById('p1-avatar-display').innerText = data.p1Data.avatar;
+        } else {
+            document.getElementById('p1-name-display').innerText = "Korsan 1 Bekleniyor...";
+            document.getElementById('p1-avatar-display').innerText = "🏴‍☠️";
+        }
 
-    if (data.p2Data) {
-        document.getElementById('p2-name-display').innerText = data.p2Data.username;
-        document.getElementById('p2-avatar-display').innerText = data.p2Data.avatar;
-    } else {
-        document.getElementById('p2-name-display').innerText = "Korsan 2 Bekleniyor...";
-        document.getElementById('p2-avatar-display').innerText = "🏴‍☠️";
-    }
-});
+        if (data.p2Data) {
+            document.getElementById('p2-name-display').innerText = data.p2Data.username;
+            document.getElementById('p2-avatar-display').innerText = data.p2Data.avatar;
+        } else {
+            document.getElementById('p2-name-display').innerText = "Korsan 2 Bekleniyor...";
+            document.getElementById('p2-avatar-display').innerText = "🏴‍☠️";
+        }
+    });
 
     socket.on('initGameState', (serverState) => {
         console.log("⚓ Sunucudan gelen oyun durumu alındı:", serverState);
@@ -182,7 +197,6 @@ function setupSocketListeners() {
         drawWheel();
     });
 
-    // Ortak Dönme Emri Animasyonu
     socket.on('runSpinAnimation', (data) => {
         spinBtn.disabled = true;
         startBattleBtn.disabled = true;
@@ -197,7 +211,6 @@ function setupSocketListeners() {
         canvas.style.transform = `rotate(${currentRotation}deg)`;
     });
 
-    // Pas Dinleyicisi
     socket.on('runPassAction', () => {
         if (aktifOyuncu === 1) p1PasHakki--;
         else p2PasHakki--;
@@ -216,7 +229,6 @@ function setupSocketListeners() {
         }
     });
 
-    // Kabul Etme / Takıma Ekleme Dinleyicisi
     socket.on('runAcceptAction', (data) => {
         if(data.charId && secilenKarakter) {
             aktifKarakterler = aktifKarakterler.filter(c => c.id !== data.charId);
@@ -256,7 +268,6 @@ function setupSocketListeners() {
             }
             drawWheel();
 
-            // Haki Mekaniği Kontrolü
             const seciliMod = modeSelect ? modeSelect.value : "gauntlet";
             let hakiMesaji = "";
             
@@ -338,21 +349,13 @@ function setupSocketListeners() {
         }
     });
 
-    // 👑 Savaş Sonucu Senkronizasyonu (Nihai Sabit Ekran Tamiri)
     socket.on('runBattleResult', (data) => {
-        // 1. Ekran metnini sadece basmayan taraf güncellesin
         if (data.senderId !== socket.id) {
             resultDisplay.innerHTML = data.html;
         }
-
-        // 2. Konfeti Tetikleyicisi (Global Sabit Düzen)
-        // Ekranlar aynalı olmadığı için; 1 kazandıysa herkesin ekranında SOLDA (1),
-        // 2 kazandıysa herkesin ekranında SAĞDA (2) patlar!
         if (data.kazanan === 1 || data.kazanan === 2) {
             triggerWinnerConfetti(data.kazanan);
         }
-
-        // 3. Butonları Kilitle ve Tekrar Oyna Butonunu Aç
         if (spinBtn) spinBtn.disabled = true;
         if (startBattleBtn) startBattleBtn.disabled = true;
         if (resetBtn) {
@@ -361,7 +364,6 @@ function setupSocketListeners() {
         }
     });
 
-    // 🔄 TAMAMLANAN ARENA SIFIRLAMA (RESET) MANTIĞI
     socket.on('runResetAction', () => {
         p1ToplamGuc = 0;
         p2ToplamGuc = 0;
@@ -381,7 +383,6 @@ function setupSocketListeners() {
         if(turnDisplay) turnDisplay.textContent = "Sıra: 1. Oyuncu";
         if(resultDisplay) resultDisplay.innerHTML = "Mürettebatlar karşı karşıya gelmek için emir bekliyor...";
 
-        // Tüm slotları sıfırla ve görsel tasarımlarını eski haline getir
         document.querySelectorAll('.slot').forEach(slot => {
             slot.setAttribute("data-filled", "false");
             const wantedText = slot.querySelector(".wanted-text");
@@ -399,12 +400,10 @@ function setupSocketListeners() {
     });
 }
 
-// Yardımcı Format Fonksiyonu
 function formatBeri(deger) {
     return new Intl.NumberFormat('tr-TR').format(deger) + " ฿";
 }
 
-// Çark Çizim Fonksiyonu
 function drawWheel() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
     const numSlices = aktifKarakterler.length;
@@ -434,7 +433,6 @@ function drawWheel() {
     }
 }
 
-// Pop-up Rol Seçimini Doldurma
 function updateModalRoleSelect() {
     modalRoleSelect.innerHTML = ""; 
     const teamId = aktifOyuncu === 1 ? "p1-team" : "p2-team";
@@ -459,7 +457,6 @@ function hasAvailableSlot(playerNum) {
     return teamBox.querySelectorAll('.slot[data-filled="false"]').length > 0;
 }
 
-// Çark Çevirme Buton Dinleyicisi
 if (spinBtn) {
     spinBtn.addEventListener("click", () => {
         if (aktifKarakterler.length === 0) {
@@ -474,7 +471,6 @@ if (spinBtn) {
     });
 }
 
-// Çark Dönme Animasyonu Bitiş Takibi
 if (canvas) {
     canvas.addEventListener("transitionend", () => {
         sesDurdur('spin'); 
@@ -497,7 +493,6 @@ if (canvas) {
     });
 }
 
-// Pas Geçme Butonu
 if (modalPassBtn) {
     modalPassBtn.addEventListener("click", () => {
         if (aktifOyuncu !== myPlayerNumber) {
@@ -513,7 +508,6 @@ if (modalPassBtn) {
     });
 }
 
-// Tayfaya Katma Butonu
 if (modalAcceptBtn) {
     modalAcceptBtn.addEventListener("click", () => {
         if (aktifOyuncu !== myPlayerNumber) {
@@ -534,7 +528,6 @@ if (modalAcceptBtn) {
     });
 }
 
-// Savaşı Başlatma Tetikleyicisi
 if (startBattleBtn) {
     startBattleBtn.addEventListener("click", () => {
         const seciliMod = modeSelect ? modeSelect.value : "gauntlet";
@@ -560,7 +553,6 @@ if (startBattleBtn) {
     });
 }
 
-// Reset Butonu Dinleyicisi
 if (resetBtn) {
     resetBtn.addEventListener("click", () => {
         socket.emit('requestReset');
@@ -587,4 +579,3 @@ if (rulesBtn && rulesModal && closeRulesBtn) {
         }
     });
 }
-

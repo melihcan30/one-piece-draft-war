@@ -9,47 +9,44 @@
 </head>
 <body>
 
-    <div class="korsan-kayit-alani">
-    <div class="input-group">
-        <label for="username-input">Korsan Adı:</label>
-        <input type="text" id="username-input" placeholder="Tayfa Lideri Adı..." maxlength="14" value="Kaptan">
-    </div>
-
-    <div class="avatar-seçici-grup">
-        <label>Jolly Roger (Bayrak) Seç:</label>
-        <div class="avatar-seçenekleri">
-            <div class="avatar-item active" data-avatar="🍖">🍖 Hasır Şapka</div>
-            <div class="avatar-item" data-avatar="⚔️">⚔️ Üç Kılıç</div>
-            <div class="avatar-item" data-avatar="🔥">🔥 Kara Bacak</div>
-            <div class="avatar-item" data-avatar="👑">👑 Kızıl Saç</div>
-        </div>
-    </div>
-</div>
-
-<div id="p1-identity" class="player-identity-card">
-    <span class="p-avatar" id="p1-avatar-display">🏴‍☠️</span>
-    <span class="p-name" id="p1-name-display">Korsan 1 Aranıyor...</span>
-</div>
-
-<div id="p2-identity" class="player-identity-card">
-    <span class="p-avatar" id="p2-avatar-display">🏴‍☠️</span>
-    <span class="p-name" id="p2-name-display">Korsan 2 Aranıyor...</span>
-</div>
+    <body>
 
     <div id="lobby-screen" class="lobby-container display-block">
-        <h1 class="lobby-title">🏴‍☠️ GRAND LINE LOBİSİ</h1>
-        <p class="lobby-subtitle">Kendi filonu kur veya var olan bir savaşa dahil ol!</p>
+        <h1 class="lobby-title">ONE PIECE DRAFT</h1>
         
-        <button id="create-room-btn" class="lobby-btn-create">
-            🆕 Yeni Savaş Odası Oluştur
-        </button>
+        <div class="korsan-kayit-alani">
+            <div class="input-group">
+                <label for="username-input">Korsan Adı:</label>
+                <input type="text" id="username-input" placeholder="Tayfa Lideri Adı..." maxlength="14" value="Kaptan">
+            </div>
 
-        <div class="lobby-divider">— VEYA —</div>
-
-        <div class="lobby-input-group">
-            <input type="text" id="room-input" placeholder="Oda Kodunu Girin (Örn: Room-1234)" class="lobby-input">
-            <button id="join-room-btn" class="lobby-btn-join">⚔️ Katıl</button>
+            <div class="avatar-seçici-grup">
+                <label>Jolly Roger (Bayrak) Seç:</label>
+                <div class="avatar-seçenekleri">
+                    <div class="avatar-item active" data-avatar="🍖">🍖 Hasır Şapka</div>
+                    <div class="avatar-item" data-avatar="⚔️">⚔️ Üç Kılıç</div>
+                    <div class="avatar-item" data-avatar="🔥">🔥 Kara Bacak</div>
+                    <div class="avatar-item" data-avatar="👑">👑 Kızıl Saç</div>
+                </div>
+            </div>
         </div>
+
+        <div class="lobby-cards">
+            <div class="lobby-card">
+                <h3>Yeni Macera Başlat</h3>
+                <p>Yeni bir Grand Line odası aç ve arkadaşını davet et.</p>
+                <button id="create-room-btn" class="lobby-btn">Oda Oluştur</button>
+            </div>
+            
+            <div class="lobby-card">
+                <h3>Mevcut Odaya Katıl</h3>
+                <p>Arkadaşının verdiği oda kodunu aşağıya gir.</p>
+                <input type="text" id="room-input" placeholder="Oda Kodu (Örn: Room-1234)...">
+                <button id="join-room-btn" class="lobby-btn secondary">Odaya Katıl</button>
+            </div>
+        </div>
+        
+        <button id="rules-btn" class="rules-btn-style" style="margin-top: 20px; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">📜 Oyun Kuralları</button>
     </div>
 
     <div id="game-screen" class="grand-line-wrapper display-none">
