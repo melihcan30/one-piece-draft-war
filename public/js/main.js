@@ -93,26 +93,23 @@ if (!roomName) {
     if (lobbyScreen) lobbyScreen.classList.replace('display-block', 'display-none');
     if (gameScreen) gameScreen.classList.replace('display-none', 'display-block');
 
-    // 🌟 YENİ: Oda Kodunu Ekranda Gösterme ve Kopyalama Butonu Mantığı
+    // 🌟 Oda Kodunu Ekranda Gösterme ve Kopyalama Butonu Mantığı
     const roomCodeDisplay = document.getElementById('room-code-display');
     const copyBtn = document.getElementById('copy-btn');
 
     if (roomCodeDisplay) {
-        roomCodeDisplay.innerText = roomName; // Ekrana oda kodunu yazdırıyoruz
+        roomCodeDisplay.innerText = roomName;
     }
 
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            // Sadece oda kodunu panoya kopyalar
             navigator.clipboard.writeText(roomName)
                 .then(() => {
-                    // Kullanıcıya görsel geri bildirim
-                    copyBtn.innerText = 'Kopyalandı! ✓';
-                    copyBtn.style.backgroundColor = '#28a745'; // Yeşil renk
-                    
+                    copyBtn.innerText = 'Kopyandı! ✓';
+                    copyBtn.style.backgroundColor = '#28a745';
                     setTimeout(() => {
                         copyBtn.innerText = 'Kopyala';
-                        copyBtn.style.backgroundColor = '#007bff'; // Eski mavi renk
+                        copyBtn.style.backgroundColor = '#007bff';
                     }, 2000);
                 })
                 .catch(err => {
@@ -121,20 +118,25 @@ if (!roomName) {
         });
     }
 
-    // Soket ve Odaları Ateşle
+    // 🔌 SOKET BAĞLANTISINI ATEŞLE
     socket = io();
-    // Odaya katılırken ismi ve avatarı paket yapıp gönderiyoruz
+
+    // 🛠️ DÜZELTME 1: Önce dinleyicileri bağla ki localhost veriyi anında döndürdüğünde kaçırmayalım!
+    setupSocketListeners();
+
+    // 🛠️ DÜZELTME 2: Sunucudan yanıt gelene kadar çark boş kalmasın, yerel verilerle ilk çizimi yap
+    aktifKarakterler = [...karakterler];
+    drawWheel();
+
+    // Odaya katılırken ismi ve avatarı paket yapıp şimdi güvenle gönderiyoruz
     const usernameInput = document.getElementById('username-input').value || 'Bilinmeyen Korsan';
 
     socket.emit('joinRoom', { 
-    room: roomName, 
-    username: usernameInput, 
-    avatar: secilenAvatar 
+        room: roomName, 
+        username: usernameInput, 
+        avatar: secilenAvatar 
     });
     console.log(`⚓ Bağlanılan Oda: ${roomName}`);
-
-    // Soket İstasyonlarını Bağla
-    setupSocketListeners();
 }
 
 

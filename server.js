@@ -19,27 +19,44 @@ io.on('connection', (socket) => {
     console.log(`🏴‍☠️ Bir korsan gemiye katıldı: ${socket.id}`);
 
     // 🚪 1. ADIM: OYUNCU ODAYA KATILDIĞINDA TETİKLENİR
-    socket.on('joinRoom', (data) => {
+    // 🚪 1. ADIM: OYUNCU ODAYA KATILDIĞINDA TETİKLENİR
+socket.on('joinRoom', (data) => {
     const roomName = data.room;
+    socket.roomName = roomName; // 🌟 DÜZELTME 1: Soket nesnesine oda adını bağla (Diğer eventler erişebilsin)
     
-    // Oda yoksa oluştur
+    // Oda yoksa oluştur ve oyunun hafıza kartını fabrika ayarlarıyla aç
     if (!rooms[roomName]) {
         rooms[roomName] = {
-            players: {},
+            players: { player1: null, player2: null },
             p1Data: null,
-            p2Data: null
+            p2Data: null,
+            aktifOyuncu: 1, // Sıra 1. oyuncuyla başlar
+            gameState: {
+                aktifKarakterler: [],
+                p1PasHakki: 5,
+                p2PasHakki: 5,
+                oyunBasladi: false
+            }
         };
     }
 
-    // Boş slotlara oyuncuları yerleştir ve gelen kimlikleri kaydet
+    // Boş slotlara oyuncuları yerleştir ve kimlik ataması (playerAssignment) yap
     if (!rooms[roomName].players.player1) {
         rooms[roomName].players.player1 = socket.id;
         rooms[roomName].p1Data = { username: data.username, avatar: data.avatar };
         socket.join(roomName);
+        
+        // 🌟 DÜZELTME 2: İstemciye 1. Oyuncu (Kırmızı) olduğunu bildir
+        socket.emit('playerAssignment', { player: 1, color: '🔴 Kırmızı' });
+        
     } else if (!rooms[roomName].players.player2) {
         rooms[roomName].players.player2 = socket.id;
         rooms[roomName].p2Data = { username: data.username, avatar: data.avatar };
         socket.join(roomName);
+        
+        // 🌟 DÜZELTME 2: İstemciye 2. Oyuncu (Mavi) olduğunu bildir
+        socket.emit('playerAssignment', { player: 2, color: '🔵 Mavi' });
+        
     } else {
         socket.emit('roomFull');
         return;
@@ -50,8 +67,14 @@ io.on('connection', (socket) => {
         p1Data: rooms[roomName].p1Data,
         p2Data: rooms[roomName].p2Data
     });
-});
 
+    // 🌟 DÜZELTME 3: Giriş yapan tarayıcıya mevcut oyun durumunu gönder (Böylece initGameState tetiklenir)
+    socket.emit('initGameState', {
+        oyunBasladi: rooms[roomName].gameState.oyunBasladi,
+        aktifKarakterler: rooms[roomName].gameState.aktifKarakterler,
+        aktifOyuncu: rooms[roomName].aktifOyuncu
+    });
+});
     // 📦 Çark İlk Yüklendiğinde Karakter Havuzunu Oda Hafızasına Al
     socket.on('syncInitialCharacters', (charactersList) => {
         const room = rooms[socket.roomName];
@@ -124,12 +147,12 @@ io.on('connection', (socket) => {
         // Gelen hazır savaş sonuçlarını sadece o odadaki herkese üfle
         const room = rooms[socket.roomName];
         if (room) {
-        // Gelen verinin içine odadaki oyuncu koltuklarını da ekleyip herkese fırlatıyoruz
+            // Gelen verinin içine odadaki oyuncu koltuklarını da ekleyip herkese fırlatıyoruz
             io.to(socket.roomName).emit('runBattleResult', {
                 html: data.html,
                 kazanan: data.kazanan,
                 senderId: data.senderId,
-                players: room.players // 🌟 Eklenen satır: { player1: 'socket_id', player2: 'socket_id' }
+                players: room.players 
             });
         }
     });
@@ -156,28 +179,28 @@ io.on('connection', (socket) => {
     });
 
     // Oyuncu ayrıldığında koltuğunu boşalt
+    // Oyuncu ayrıldığında koltuğunu boşalt
     socket.on('disconnect', () => {
         console.log(`⚓ Korsan ayrıldı: ${socket.id}`);
-        const room = rooms[socket.roomName];
-        
-        // Disconnect kod bloğunun içinde oyuncuyu odadan silerken datalarını da null yap:
-    if (rooms[roomName].players.player1 === socket.id) {
-        rooms[roomName].players.player1 = null;
-        rooms[roomName].p1Data = null;
-    } else if (rooms[roomName].players.player2 === socket.id) {
-        rooms[roomName].players.player2 = null;
-        rooms[roomName].p2Data = null;
-    }
+        const roomName = socket.roomName; // 🌟 DÜZELTME: Tanımsız roomName hatasını önlemek için socket'ten alıyoruz
+    
+        if (!roomName || !rooms[roomName]) return;
+    
+        if (rooms[roomName].players.player1 === socket.id) {
+            rooms[roomName].players.player1 = null;
+            rooms[roomName].p1Data = null;
+        } else if (rooms[roomName].players.player2 === socket.id) {
+            rooms[roomName].players.player2 = null;
+            rooms[roomName].p2Data = null;
+        }
 
-// Ve kalan oyuncuya güncel durumu bildir:
-io.to(roomName).emit('roomStatus', {
-    p1Data: rooms[roomName].p1Data,
-    p2Data: rooms[roomName].p2Data
-});
+        // Kalan oyuncuya güncel durumu bildir
+        io.to(roomName).emit('roomStatus', {
+            p1Data: rooms[roomName].p1Data,
+            p2Data: rooms[roomName].p2Data
+        });
     });
 });
-
-
 
 server.listen(PORT, () => {
     console.log(`⚓ Grand Line Arena hazır! http://localhost:${PORT} adresinden yelken açabilirsiniz.`);

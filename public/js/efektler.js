@@ -122,7 +122,7 @@ export function triggerHakiLightning() {
     // 2. Şimşeklerin çizileceği SVG alanını oluştur
     const svgNS = "http://www.w3.org/2000/svg";
     const svgContainer = document.createElementNS(svgNS, "svg");
-    svgContainer.setAttribute("className", "haki-lightning-svg");
+    svgContainer.setAttribute("class", "haki-lightning-svg"); //  Düzeltildi
     // Klasör isimlendirmesinde bazen class sıkıntısı olmaması için direkt style ve class tanımlıyoruz
     svgContainer.style.position = "fixed";
     svgContainer.style.top = "0";
