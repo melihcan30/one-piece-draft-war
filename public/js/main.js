@@ -165,22 +165,27 @@ function setupSocketListeners() {
     });
 
     socket.on('roomStatus', (data) => {
-        if (data.p1Data) {
-            document.getElementById('p1-name-display').innerText = data.p1Data.username;
-            document.getElementById('p1-avatar-display').innerText = data.p1Data.avatar;
-        } else {
-            document.getElementById('p1-name-display').innerText = "Korsan 1 Bekleniyor...";
-            document.getElementById('p1-avatar-display').innerText = "🏴‍☠️";
-        }
+    const p1Name = document.getElementById('p1-name-display');
+    const p1Avatar = document.getElementById('p1-avatar-display');
+    const p2Name = document.getElementById('p2-name-display');
+    const p2Avatar = document.getElementById('p2-avatar-display');
 
-        if (data.p2Data) {
-            document.getElementById('p2-name-display').innerText = data.p2Data.username;
-            document.getElementById('p2-avatar-display').innerText = data.p2Data.avatar;
-        } else {
-            document.getElementById('p2-name-display').innerText = "Korsan 2 Bekleniyor...";
-            document.getElementById('p2-avatar-display').innerText = "🏴‍☠️";
-        }
-    });
+    if (data.p1Data && data.p1Data.username) {
+        if (p1Name) p1Name.innerText = data.p1Data.username;
+        if (p1Avatar) p1Avatar.innerText = data.p1Data.avatar;
+    } else {
+        if (p1Name) p1Name.innerText = "Korsan 1 Bekleniyor...";
+        if (p1Avatar) p1Avatar.innerText = "🏴‍☠️";
+    }
+
+    if (data.p2Data && data.p2Data.username) {
+        if (p2Name) p2Name.innerText = data.p2Data.username;
+        if (p2Avatar) p2Avatar.innerText = data.p2Data.avatar;
+    } else {
+        if (p2Name) p2Name.innerText = "Korsan 2 Bekleniyor...";
+        if (p2Avatar) p2Avatar.innerText = "🏴‍☠️";
+    }
+});
 
     socket.on('initGameState', (serverState) => {
         console.log("⚓ Sunucudan gelen oyun durumu alındı:", serverState);
