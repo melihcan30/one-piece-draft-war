@@ -10,20 +10,25 @@ body {
     background: radial-gradient(circle, #1a252f 0%, #0f171e 100%);
     color: #fff;
     min-height: 100vh;
-    padding: 20px;
+    height: 100vh; /* Ekranı dikeyde tam boyuta kilitler */
+    overflow-x: hidden;
+    padding: 12px; /* Laptoplar için padding biraz daraltıldı */
 }
 
 .grand-line-wrapper {
     max-width: 1400px;
     margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* 🏴‍☠️ ÜST BAŞLIK & MOD SEÇİMİ */
 .game-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 12px; /* 30px'den düşürüldü (Laptop dostu) */
     background: rgba(0, 0, 0, 0.4);
-    padding: 20px;
+    padding: 10px 20px; /* İç boşluk azaltıldı */
     border-radius: 12px;
     border: 2px solid #f1c40f;
     box-shadow: 0 0 15px rgba(241, 196, 15, 0.2);
@@ -31,14 +36,14 @@ body {
 
 .main-title {
     font-family: 'Cinzel', serif;
-    font-size: 2.5rem;
+    font-size: 2.2rem; /* Bir tık küçültüldü */
     color: #f1c40f;
     text-shadow: 3px 3px 0px #c0392b;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
 
 .mode-container {
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .mode-container label {
@@ -51,7 +56,7 @@ body {
     background: #2c3e50;
     color: white;
     border: 2px solid #f1c40f;
-    padding: 8px 15px;
+    padding: 6px 12px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
@@ -59,32 +64,39 @@ body {
 
 #turn-display {
     font-family: 'Permanent Marker', cursive;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     color: #2ecc71;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 /* ⚔️ OYUN ALANI (3 SÜTUNLU SİSTEM) */
 .game-container {
     display: grid;
-    grid-template-columns: 320px 1fr 320px;
-    gap: 20px;
-    align-items: start;
+    grid-template-columns: 300px 1fr 300px; /* Genişlik laptoplar için 320'den 300'e çekildi */
+    gap: 15px;
+    align-items: stretch; /* Sütunların tam yüksekliğe esnemesini sağlar */
+    flex: 1;
+    height: calc(100vh - 160px); /* Kalan tüm dikey alanı kaplar, taşma yapmaz */
+    min-height: 0; /* İçerik taşmasını önleyen kritik flex/grid kuralı */
 }
 
 /* 📜 TAKIM KUTULARI & SLOTLAR */
 .team-box {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 12px;
-    padding: 15px;
+    padding: 12px;
     border: 2px solid #7f8c8d;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
 }
 
 .team-title {
     text-align: center;
     font-family: 'Cinzel', serif;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
     padding-bottom: 5px;
     border-bottom: 2px dashed #7f8c8d;
 }
@@ -95,46 +107,60 @@ body {
 .slots-grid {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 8px; /* Boşluklar daraltılarak dikey sığma garantilendi */
+    flex: 1;
+    justify-content: space-between;
+    min-height: 0;
 }
 
 /* 🖼️ MINI WANTED POSTER SLOTLARI */
 .slot {
     background: #e6dfd3; /* Eskitilmiş kağıt rengi */
     color: #2c3e50;
-    padding: 10px;
+    padding: 6px 10px;
     border-radius: 8px;
     border: 3px solid #b3a286;
     position: relative;
     transition: all 0.3s ease;
+    flex: 1; /* Slotların dikey alanı eşit bölüşmesini sağlar */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
 }
 
 .role-badge {
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: bold;
     color: #7f8c8d;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     text-transform: uppercase;
+    text-align: center;
 }
 
 .wanted-poster {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
 }
 
 .wanted-text {
     font-family: 'Cinzel', serif;
     font-weight: 900;
-    font-size: 1.1rem;
+    font-size: 0.95rem; /* Laptopta taşmasın diye hafif küçültüldü */
     letter-spacing: 2px;
     color: #7f4f24;
 }
 
 .char-name {
     font-family: 'Permanent Marker', cursive;
-    font-size: 1.1rem;
-    margin-top: 5px;
-    min-height: 40px;
+    font-size: 1rem;
+    margin-top: 2px;
+    min-height: auto;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,18 +168,17 @@ body {
 
 .total-power {
     text-align: center;
-    margin-top: 15px;
+    margin-top: 8px;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #f1c40f;
 }
 
-/* 🛠️ BÖLÜM 1: BİRE BİR MODU KAZANAN / KAYBEDEN GLOW EFEKTLERİ */
-/* JavaScript'in ekleyebileceği tüm olası Türkçe ve İngilizce class senaryoları kapsandı */
+/* 🛠️ KAZANAN / KAYBEDEN GLOW EFEKTLERİ */
 .slot.winner, .slot.kazanan {
     border-color: #2ecc71 !important;
     box-shadow: 0 0 20px rgba(46, 204, 113, 0.8) !important;
-    background: #d4f8e6 !important; /* Canlı yeşil esintili eskitme kağıt */
+    background: #d4f8e6 !important;
 }
 
 .slot.winner .wanted-text, .slot.kazanan .wanted-text {
@@ -163,14 +188,13 @@ body {
 .slot.loser, .slot.kaybeden {
     border-color: #e74c3c !important;
     box-shadow: 0 0 20px rgba(231, 76, 60, 0.8) !important;
-    background: #fcdbd9 !important; /* Canlı kırmızı esintili eskitme kağıt */
+    background: #fcdbd9 !important;
 }
 
 .slot.loser .wanted-text, .slot.kaybeden .wanted-text {
     color: #c0392b !important;
 }
 
-/* Karakter bayıldıysa (isteğe bağlı destek) */
 .slot.baygin, .slot.bayildi {
     opacity: 0.6;
     filter: grayscale(50%);
@@ -178,26 +202,33 @@ body {
     box-shadow: none !important;
 }
 
-
 /* 🔮 MERKEZ ALAN & ÇARK */
 .game-area {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between; /* Bileşenleri merkeze dengeli yayar */
     background: rgba(0, 0, 0, 0.3);
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
+    height: 100%;
+    min-height: 0;
 }
 
 .wheel-container {
     position: relative;
-    margin-bottom: 25px;
+    margin-bottom: 10px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
 }
 
-/* 🛠️ BÖLÜM 2: ÇARK SEÇİM OKU VE TİTREME (VIBRATION) AKTİFA SYONU */
+/* 🛠️ ÇARK SEÇİM OKU VE TİTREME */
 .wheel-pointer {
     position: absolute;
-    top: -15px;
+    top: 5px; /* Çark küçüldüğü için ibre konumu optimize edildi */
     left: 50%;
     transform: translateX(-50%);
     width: 0;
@@ -207,11 +238,10 @@ body {
     border-top: 30px solid #e74c3c;
     z-index: 99;
     filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));
-    transform-origin: top center; /* Titremenin tepe noktasından pürüzsüz yapılması için */
+    transform-origin: top center;
     transition: transform 0.1s ease;
 }
 
-/* Mekanik titreme animasyonu tanımı */
 @keyframes pointer-vibration {
     0% { transform: translateX(-50%) rotate(0deg); }
     25% { transform: translateX(-50%) rotate(-12deg); }
@@ -220,12 +250,11 @@ body {
     100% { transform: translateX(-50%) rotate(0deg); }
 }
 
-/* JS çarkı döndürürken bu iki class'tan birini tetiklerse ibre titreyecek */
 .wheel-pointer.pointer-spinning,
 .wheel-pointer.spinning,
 .pointer-spinning {
     animation: pointer-vibration 0.1s infinite ease-in-out;
-    border-top-color: #ff1e43 !important; /* Dönerken daha parlak bir kırmızı */
+    border-top-color: #ff1e43 !important;
 }
 
 #wheelCanvas {
@@ -233,12 +262,16 @@ body {
     border: 8px solid #f1c40f;
     box-shadow: 0 0 30px rgba(241, 196, 15, 0.4);
     transition: transform 4s cubic-bezier(0.1, 0.8, 0.1, 1);
+    max-height: 36vh; /* Çark yüksekliği laptop ekran boyuna göre kısıtlandı */
+    width: auto;
+    height: auto;
+    aspect-ratio: 1 / 1; /* Çarkın yuvarlak kalmasını garantiler */
 }
 
 /* 🕹️ KONTROL PANELİ & RETRO BUTONLAR */
 .control-panel {
     width: 100%;
-    max-width: 450px;
+    max-width: 420px;
     text-align: center;
 }
 
@@ -246,15 +279,15 @@ body {
     background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
     color: #000;
     font-weight: bold;
-    font-size: 1.3rem;
-    padding: 12px 30px;
+    font-size: 1.2rem;
+    padding: 10px 24px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
     width: 100%;
     transition: all 0.2s;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 #spin-btn:hover:not(:disabled) {
@@ -269,59 +302,61 @@ body {
     box-shadow: none;
 }
 
-/* 🛠️ BÖLÜM 3: SAVAŞ SONUÇLARININ YATAYDA TAŞMASINI VE KAYMASINI ÖNLEYEN DÜZENLEME */
+/* 🛠️ SAVAŞ SONUÇLARININ TAŞMASINI ÖNLEYEN DÜZENLEME */
 #result-display {
     background: #2c3e50;
     border: 2px solid #34495e;
-    padding: 15px;
+    padding: 10px;
     border-radius: 8px;
-    min-height: 70px;
-    margin-bottom: 15px;
+    min-height: 55px;
+    max-height: 75px; /* Çarkı sıkıştırmaması için maksimum yükseklik kilitlendi */
+    overflow-y: auto; /* İçi taşarsa kendi içinde scroll olur, ekranı bozmaz */
+    margin-bottom: 10px;
     display: flex;
-    flex-direction: column; /* Yazıların yan yana sıkışmasını engeller, alt alta düzgünce sıralar */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    gap: 6px; /* Satırlar arası temiz boşluk bırakır */
+    gap: 4px;
     width: 100%;
-    height: auto;
-    overflow: hidden;
+    font-size: 0.9rem;
     text-align: center;
 }
 
-/* İçeriye inject edilen metin satırları veya div'lerin düzeni */
 #result-display span, 
 #result-display p, 
 #result-display div {
     display: block;
     width: 100%;
-    white-space: normal; /* Yan yana uzayıp ekranı delmesini engeller, alt satıra kırar */
+    white-space: normal;
     word-wrap: break-word;
 }
 
 #reroll-info {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #bdc3c7;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 /* 🤝 AKSİYON SEÇENEKLERİ (TAYFAYA KAT / PAS) */
 .action-buttons {
     background: rgba(0,0,0,0.4);
-    padding: 15px;
+    padding: 10px;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 #role-select {
     width: 100%;
-    padding: 8px;
+    padding: 6px;
     background: #34495e;
     color: white;
     border: 1px solid #7f8c8d;
     border-radius: 4px;
+    font-size: 0.9rem;
 }
 
 .btn-group {
@@ -330,38 +365,30 @@ body {
     width: 100%;
 }
 
-#accept-btn {
+#accept-btn, #pass-btn {
     flex: 1;
-    background: #2ecc71;
     color: white;
     border: none;
-    padding: 10px;
+    padding: 8px;
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
+    font-size: 0.95rem;
 }
 
-#pass-btn {
-    flex: 1;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-}
+#accept-btn { background: #2ecc71; }
+#pass-btn { background: #e74c3c; }
 
 /* ⚔️ SAVAŞI BAŞLAT & TEKRAR OYNA BUTONLARI */
 .main-btn {
     width: 100%;
-    padding: 14px;
-    font-size: 1.2rem;
+    padding: 10px;
+    font-size: 1.1rem;
     font-weight: bold;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 10px;
+    margin-top: 5px;
     transition: all 0.2s;
 }
 
@@ -449,68 +476,6 @@ body {
     to { opacity: 1; transform: scale(1); }
 }
 
-/* Pop-up Arka Plan Karartması */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-/* Pop-up Kutusu */
-.modal-content {
-    background: #2c3e50;
-    color: #ecf0f1;
-    width: 90%;
-    max-width: 650px;
-    max-height: 80vh;
-    border-radius: 12px;
-    border: 3px solid #f1c40f;
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.3);
-    overflow-y: auto;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-.modal-header {
-    background: #1a252f;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #f1c40f;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: #f1c40f;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: #bdc3c7;
-    font-size: 2rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.close-btn:hover {
-    color: #e74c3c;
-}
-
-.modal-body {
-    padding: 20px;
-    line-height: 1.6;
-}
-
 .modal-body h3 {
     color: #3498db;
     margin-top: 20px;
@@ -518,23 +483,13 @@ body {
     padding-bottom: 5px;
 }
 
-.modal-body ul {
-    padding-left: 20px;
-}
-
-.modal-body li {
-    margin-bottom: 8px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
+.modal-body ul { padding-left: 20px; }
+.modal-body li { margin-bottom: 8px; }
 
 /* 📜 GRAND WANTED POPUP STİLLERİ */
 .poster-modal {
     max-width: 420px;
-    background: #eedfae; /* Gerçek parşömen/ilan kağıdı rengi */
+    background: #eedfae;
     border: 8px solid #846843;
     box-shadow: 0 0 30px rgba(241, 196, 15, 0.5), inset 0 0 20px rgba(0,0,0,0.3);
     color: #2c1a11;
@@ -560,7 +515,7 @@ body {
 
 .poster-image-placeholder {
     width: 100%;
-    height: 240px;
+    height: 220px;
     background: #dfcf99;
     border: 3px solid #705531;
     display: flex;
@@ -596,7 +551,6 @@ body {
     margin-top: 2px;
 }
 
-/* Aksiyon Paneli ve Butonlar */
 .modal-action-panel {
     background: rgba(0, 0, 0, 0.05);
     padding: 15px;
@@ -648,7 +602,7 @@ body {
 /* 🚪 KORSAN LOBİSİ TASARIMI */
 .lobby-container {
     max-width: 500px;
-    margin: 100px auto;
+    margin: 80px auto; /* 100px'den düşürüldü */
     text-align: center;
     background: #2c3e50;
     padding: 30px;
@@ -657,15 +611,8 @@ body {
     border: 2px solid #f39c12;
 }
 
-.lobby-title {
-    color: #f1c40f;
-    margin-bottom: 10px;
-}
-
-.lobby-subtitle {
-    color: #b2bec3;
-    margin-bottom: 30px;
-}
+.lobby-title { color: #f1c40f; margin-bottom: 10px; }
+.lobby-subtitle { color: #b2bec3; margin-bottom: 30px; }
 
 .lobby-btn-create {
     width: 100%;
@@ -680,21 +627,10 @@ body {
     margin-bottom: 20px;
     transition: 0.2s;
 }
+.lobby-btn-create:hover { background: #218c53; }
+.lobby-divider { color: #7f8c8d; margin-bottom: 20px; }
 
-.lobby-btn-create:hover {
-    background: #218c53;
-}
-
-.lobby-divider {
-    color: #7f8c8d;
-    margin-bottom: 20px;
-}
-
-.lobby-input-group {
-    display: flex;
-    gap: 10px;
-}
-
+.lobby-input-group { display: flex; gap: 10px; }
 .lobby-input {
     flex: 1;
     padding: 12px;
@@ -716,28 +652,13 @@ body {
     cursor: pointer;
     transition: 0.2s;
 }
-
-.lobby-btn-join:hover {
-    background: #1f6391;
-}
+.lobby-btn-join:hover { background: #1f6391; }
 
 /* 📜 EKSTRA KONTROL VE MODAL SINIFLARI */
-.rules-btn-style {
-    background: #706fd3;
-    color: white;
-}
-
-.display-none {
-    display: none !important;
-}
-
-.display-block {
-    display: block !important;
-}
-
-.display-flex {
-    display: flex !important;
-}
+.rules-btn-style { background: #706fd3; color: white; }
+.display-none { display: none !important; }
+.display-block { display: block !important; }
+.display-flex { display: flex !important; }
 
 /* Korsan Kimlik Kartları ve Giriş Alanı */
 .korsan-kayit-alani {
@@ -785,10 +706,7 @@ body {
     box-shadow: 0 0 8px rgba(241, 196, 15, 0.4);
 }
 
-.avatar-seçici-grup {
-    margin-top: 15px;
-}
-
+.avatar-seçici-grup { margin-top: 15px; }
 .avatar-seçenekleri {
     display: flex;
     gap: 12px;
@@ -815,7 +733,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Aktif Seçilen Jolly Roger'ın Haki Parlaması 🔥 */
 .avatar-item.active {
     background: #f1c40f;
     border-color: #fff;
@@ -824,7 +741,6 @@ body {
     transform: scale(1.05);
 }
 
-/* 🎫 LOBİ BUTONLARI VE INPUT ALANI */
 .lobby-btn {
     background: #f1c40f;
     color: #0f0a05;
@@ -848,7 +764,6 @@ body {
     box-shadow: 0 6px 12px rgba(241, 196, 15, 0.4);
 }
 
-/* Katıl Butonu İçin Alternatif Kırmızı Tonu */
 .lobby-btn.secondary {
     background: #e74c3c;
     color: #fff;
@@ -860,7 +775,6 @@ body {
     box-shadow: 0 6px 12px rgba(231, 76, 60, 0.4);
 }
 
-/* Oda Kodu Girdi Alanı */
 #room-input {
     width: 100%;
     padding: 12px;
@@ -876,4 +790,24 @@ body {
 #room-input:focus {
     border-color: #e74c3c;
     box-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
+}
+
+/* =========================================================================
+   💻 EKSTRA KÜÇÜK LAPTOP EKRANLARI İÇİN MİKRO AYARLAR (Yükseklik < 780px)
+   ========================================================================= */
+@media (max-height: 780px) {
+    body { padding: 6px; }
+    .game-header { padding: 6px 15px; margin-bottom: 8px; }
+    .main-title { font-size: 1.8rem; }
+    .game-container { height: calc(100vh - 130px); gap: 10px; }
+    .team-box { padding: 8px; }
+    .team-title { font-size: 1rem; margin-bottom: 5px; }
+    .slots-grid { gap: 4px; }
+    .slot { padding: 4px 8px; border-width: 2px; }
+    .wanted-text { font-size: 0.85rem; letter-spacing: 1px; }
+    .char-name { font-size: 0.9rem; }
+    #wheelCanvas { max-height: 32vh; }
+    #result-display { max-height: 60px; font-size: 0.85rem; padding: 6px; margin-bottom: 6px; }
+    .action-buttons { padding: 6px; margin-bottom: 6px; gap: 4px; }
+    #spin-btn { font-size: 1.1rem; padding: 8px 20px; margin-bottom: 6px; }
 }
