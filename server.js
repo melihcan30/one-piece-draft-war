@@ -22,7 +22,7 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', (data) => {
         const roomName = data.room;
         socket.roomName = roomName; // 🌟 EN KRİTİK DÜZELTME: Sokete oda adını bağlıyoruz!
-        
+
         // Oda yoksa oluştur ve tam oyun şablonunu hafızaya al
         if (!rooms[roomName]) {
             rooms[roomName] = {
@@ -141,6 +141,20 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Oyunculardan biri pop-up üzerindeki "Savaşa Devam Et" butonuna bastığında tetiklenir
+    socket.on('requestNextLogStep', () => {
+        // Hangi odada olunduğunu bulup odaya runNextLogStep emrini gönderiyoruz
+        if (socket.roomName) {
+            io.to(socket.roomName).emit('runNextLogStep');
+        } else {
+            // Eğer socket üzerinde roomName tutmuyorsan, odaları tarayan mevcut mantığına göre uyarlayabilirsin:
+            const userRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
+            if (userRooms.length > 0) {
+                io.to(userRooms[0]).emit('runNextLogStep');
+            }
+        }
+    });
+
     // ⚔️ Savaş Başlatma ve Sonuç Dağıtma İsteği
     socket.on('requestBattle', (data) => {
         const room = rooms[socket.roomName];
@@ -180,7 +194,7 @@ io.on('connection', (socket) => {
         if (!roomName || !rooms[roomName]) return;
 
         console.log(`⚓ Korsan ayrıldı: ${socket.id} (Oda: ${roomName})`);
-        
+
         if (rooms[roomName].players.player1 === socket.id) {
             rooms[roomName].players.player1 = null;
             rooms[roomName].p1Data = null;
