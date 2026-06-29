@@ -51,6 +51,16 @@
         
         <header class="game-header">
             <h1 class="main-title">🏴‍☠️ GRAND LINE DRAFT 🏴‍☠️</h1>           
+            <div class="settings-shell">
+                <button id="settings-toggle" class="icon-btn" aria-label="Ses ayarlari">⚙️</button>
+                <div id="settings-panel" class="settings-panel display-none">
+                    <label>Master Volume <input type="range" id="master-volume" min="0" max="100" value="80"></label>
+                    <label>Music Volume <input type="range" id="music-volume" min="0" max="100" value="75"></label>
+                    <label>Sound Effects <input type="range" id="effects-volume" min="0" max="100" value="85"></label>
+                    <label class="mute-row"><span>Mute All</span><input type="checkbox" id="mute-all"></label>
+                </div>
+            </div>
+
             <div class="mode-container">
                 <label for="mode-select">SAVAŞ MODU:</label>
                 <select id="mode-select">
@@ -106,6 +116,7 @@
                 <h3 class="team-title p1-color">
                     <span id="p1-avatar-display">🏴‍☠️</span> 
                     <span id="p1-name-display">Korsan 1 Bekleniyor...</span>
+                    <span id="p1-ready-status" class="ready-status">Not Ready</span>
                 </h3>
                 <div class="slots-grid">
                     <div class="slot" data-filled="false">
@@ -155,8 +166,13 @@
 
                 <div class="control-panel">
                     <button id="spin-btn">🎯 ÇARKI ÇEVİR</button>
+                    <button id="ready-btn" class="ready-btn">Ready</button>
                     <div id="result-display">Mürettebatlar karşı karşıya gelmek için emir bekliyor...</div>
-                    <div id="reroll-info">Kalan Pas Hakkı: <strong id="reroll-count">5</strong></div>
+                    <div id="reroll-info" aria-label="Kalan pas hakki">
+                        <div id="reroll-tokens" class="reroll-tokens"></div>
+                        <strong id="reroll-count" class="sr-only">5</strong>
+                    </div>
+                    <div id="stamp-panel" class="stamp-panel"></div>
 
                     <div class="action-buttons display-none">
                         <select id="role-select"></select>
@@ -175,6 +191,7 @@
                 <h3 class="team-title p2-color">
                     <span id="p2-avatar-display">🏴‍☠️</span> 
                     <span id="p2-name-display">Korsan 2 Bekleniyor...</span>
+                    <span id="p2-ready-status" class="ready-status">Not Ready</span>
                 </h3>
                 <div class="slots-grid">
                     <div class="slot" data-filled="false">
@@ -217,6 +234,8 @@
             </section>
 
         </div>
+        <div id="turn-toast" class="turn-toast">Senin Sıran!</div>
+        <div id="stamp-stage" class="stamp-stage"></div>
     </div>
 
     <div id="character-modal" class="modal-overlay modal-open-state display-none">

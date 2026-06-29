@@ -22,6 +22,8 @@ io.on('connection', socket => {
     socket.on('requestSpin', () => runIfAuthorized(socket, room => spinWheel(socket, room)));
     socket.on('requestPass', () => runIfAuthorized(socket, room => passTurn(socket, room)));
     socket.on('requestAccept', data => runIfAuthorized(socket, room => acceptCharacter(socket, room, data)));
+    socket.on('setReady', isReady => setReady(socket, isReady));
+    socket.on('sendStamp', stamp => sendStamp(socket, stamp));
     socket.on('syncActivePlayer', data => syncActivePlayer(socket, data));
     socket.on('requestNextLogStep', () => emitToSocketRoom(socket, 'runNextLogStep'));
     socket.on('requestBattle', data => requestBattle(socket, data));
@@ -53,6 +55,7 @@ function getOrCreateRoom(roomName) {
             players: { player1: null, player2: null },
             p1Data: null,
             p2Data: null,
+            ready: { 1: false, 2: false },
             activePlayer: 1,
             gameState: createInitialGameState()
         };
@@ -104,7 +107,32 @@ function emitRoomStatus(roomName) {
 
     io.to(roomName).emit('roomStatus', {
         p1Data: room.p1Data,
-        p2Data: room.p2Data
+        p2Data: room.p2Data,
+        ready: room.ready
+    });
+}
+
+function setReady(socket, isReady) {
+    const room = getSocketRoom(socket);
+    const playerNumber = getSocketPlayerNumber(socket, room);
+    if (!room || !playerNumber || room.gameState.oyunBasladi) return;
+
+    room.ready[playerNumber] = Boolean(isReady);
+    emitRoomStatus(socket.roomName);
+}
+
+function sendStamp(socket, stamp) {
+    const room = getSocketRoom(socket);
+    const playerNumber = getSocketPlayerNumber(socket, room);
+    if (!room || !playerNumber || typeof stamp !== 'string') return;
+
+    const safeStamp = stamp.trim().slice(0, 8);
+    if (!safeStamp) return;
+
+    io.to(socket.roomName).emit('stampReceived', {
+        player: playerNumber,
+        stamp: safeStamp,
+        id: `${socket.id}-${Date.now()}`
     });
 }
 
@@ -113,6 +141,7 @@ function syncInitialCharacters(socket, characters) {
     if (!room) return;
 
     if (room.gameState.aktifKarakterler.length > 0 || room.gameState.oyunBasladi) return;
+    if (!room.ready[1] || !room.ready[2] || !room.players.player1 || !room.players.player2) return;
 
     room.gameState.aktifKarakterler = characters;
     room.gameState.oyunBasladi = true;
@@ -199,8 +228,10 @@ function resetRoom(socket) {
     if (!room) return;
 
     room.activePlayer = 1;
+    room.ready = { 1: false, 2: false };
     room.gameState = createInitialGameState();
     io.to(socket.roomName).emit('runResetAction');
+    emitRoomStatus(socket.roomName);
 }
 
 function leaveRoom(socket) {
@@ -213,9 +244,11 @@ function leaveRoom(socket) {
     if (room.players.player1 === socket.id) {
         room.players.player1 = null;
         room.p1Data = null;
+        room.ready[1] = false;
     } else if (room.players.player2 === socket.id) {
         room.players.player2 = null;
         room.p2Data = null;
+        room.ready[2] = false;
     }
 
     emitRoomStatus(roomName);
@@ -243,6 +276,13 @@ function getSocketRoom(socket) {
 
 function isActivePlayer(socket, room) {
     return socket.id === room.players[`player${room.activePlayer}`];
+}
+
+function getSocketPlayerNumber(socket, room) {
+    if (!room) return null;
+    if (room.players.player1 === socket.id) return 1;
+    if (room.players.player2 === socket.id) return 2;
+    return null;
 }
 
 server.listen(PORT, () => {

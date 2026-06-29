@@ -1,6 +1,6 @@
 import { karakterler, anaRenkler } from './karakterler.js';
 import { runGauntletBattle, runMatchupBattle, runSynergyBattle } from './savasMotoru.js';
-import { sesCal, sesDurdur } from './sesMotoru.js';
+import { getAudioSettings, sesCal, sesDurdur, updateAudioSettings } from './sesMotoru.js';
 import { triggerHakiLightning } from './efektler.js';
 import { drawWheel, getWinningCharacter } from './cark.js';
 import { byId, all, hideFromBlock, hideFromFlex, setDisabled, setHtml, setText, showAsBlock, showAsFlex } from './domYardimcilari.js';
@@ -29,6 +29,7 @@ const dom = {
     result: byId("result-display"),
     rerollCount: byId("reroll-count"),
     rerollButtonCount: byId("reroll-count-btn"),
+    rerollTokens: byId("reroll-tokens"),
     turn: byId("turn-display"),
     modeSelect: byId("mode-select"),
     startBattleButton: byId("start-battle-btn"),
@@ -49,7 +50,25 @@ const dom = {
     copyRoomButton: byId('copy-btn'),
     rulesButtons: [byId("rules-btn"), byId("lobby-rules-btn")].filter(Boolean),
     rulesModal: byId("rules-modal"),
-    closeRulesButton: byId("close-rules-btn")
+    closeRulesButton: byId("close-rules-btn"),
+    readyButton: byId("ready-btn"),
+    readyStatus: {
+        1: byId("p1-ready-status"),
+        2: byId("p2-ready-status")
+    },
+    teamBoxes: {
+        1: byId("p1-team"),
+        2: byId("p2-team")
+    },
+    turnToast: byId("turn-toast"),
+    settingsToggle: byId("settings-toggle"),
+    settingsPanel: byId("settings-panel"),
+    masterVolume: byId("master-volume"),
+    musicVolume: byId("music-volume"),
+    effectsVolume: byId("effects-volume"),
+    muteAll: byId("mute-all"),
+    stampPanel: byId("stamp-panel"),
+    stampStage: byId("stamp-stage")
 };
 
 const ctx = dom.canvas.getContext("2d");
@@ -59,6 +78,11 @@ const roomName = urlParams.get('room');
 
 let socket = null;
 let selectedAvatar = sessionStorage.getItem('korsanAvatar') || "🍖";
+let readyState = { 1: false, 2: false };
+let gameStarted = false;
+let lastAnnouncedTurn = null;
+let turnToastTimer = null;
+let lastStampSentAt = 0;
 let battlePopup = {
     lines: [],
     currentIndex: 0,
@@ -67,6 +91,8 @@ let battlePopup = {
 
 bindAvatarSelection();
 bindRulesModal();
+bindAudioMixer();
+renderStampPanel();
 
 if (roomName) {
     startGameRoom(roomName);
@@ -178,6 +204,8 @@ function setupSocketListeners() {
     socket.on('playerAssignment', data => {
         state.myPlayerNumber = data.player;
         console.log(`Rolun: ${data.color} - Oyuncu Numaran: ${state.myPlayerNumber}`);
+        updateReadyDisplays();
+        updateActionAvailability();
     });
 
     socket.on('roomStatus', updateRoomStatus);
@@ -188,11 +216,23 @@ function setupSocketListeners() {
     socket.on('runBattleResult', openBattlePopup);
     socket.on('runNextLogStep', renderNextBattleLine);
     socket.on('runResetAction', resetArena);
+    socket.on('stampReceived', showStamp);
 }
 
 function updateRoomStatus(data) {
+    readyState = {
+        1: Boolean(data.ready?.[1]),
+        2: Boolean(data.ready?.[2])
+    };
+
     setPlayerCard(1, data.p1Data);
     setPlayerCard(2, data.p2Data);
+    updateReadyDisplays();
+
+    if (!gameStarted && readyState[1] && readyState[2]) {
+        setText(dom.result, "Iki tayfa da hazir. Draft basliyor...");
+        socket.emit('syncInitialCharacters', karakterler);
+    }
 }
 
 function setPlayerCard(playerNumber, playerData) {
@@ -201,11 +241,15 @@ function setPlayerCard(playerNumber, playerData) {
 }
 
 function applyInitialServerState(serverState) {
+    gameStarted = Boolean(serverState.oyunBasladi);
+
     if (serverState.oyunBasladi && serverState.aktifKarakterler?.length > 0) {
         state.activeCharacters = serverState.aktifKarakterler;
     } else {
         state.activeCharacters = [...karakterler];
-        socket.emit('syncInitialCharacters', karakterler);
+        if (readyState[1] && readyState[2]) {
+            socket.emit('syncInitialCharacters', karakterler);
+        }
     }
 
     state.activePlayer = serverState.aktifOyuncu || 1;
@@ -215,6 +259,8 @@ function applyInitialServerState(serverState) {
     hydrateTeamsFromServer(serverState);
     updateTurnDisplay();
     updatePassDisplays();
+    updateReadyDisplays();
+    updateActionAvailability();
     renderWheel();
 }
 
@@ -258,9 +304,15 @@ function bindGameControls() {
     dom.modalAcceptButton?.addEventListener("click", requestAccept);
     dom.startBattleButton?.addEventListener("click", requestBattle);
     dom.resetButton?.addEventListener("click", () => socket.emit('requestReset'));
+    dom.readyButton?.addEventListener("click", toggleReady);
 }
 
 function requestSpin() {
+    if (!gameStarted) {
+        alert("Draft baslamadan once iki oyuncu da Ready olmali.");
+        return;
+    }
+
     if (state.activeCharacters.length === 0) {
         setText(dom.result, "Carkta secilecek karakter kalmadi!");
         return;
@@ -319,10 +371,12 @@ function requestPass() {
 }
 
 function runPassAction() {
+    const previousPassCount = state.passRights[state.activePlayer];
     state.passRights[state.activePlayer]--;
-    updatePassDisplays();
+    updatePassDisplays(previousPassCount);
     hideFromFlex(dom.characterModal);
     dom.spinButton.disabled = false;
+    updateActionAvailability();
 
     if (isMyTurn()) {
         socket.emit('requestSpin');
@@ -362,7 +416,8 @@ function runAcceptAction(data) {
     if (finishDraftIfTeamsAreFull()) return;
 
     moveTurnToNextPlayer();
-    setDisabled([dom.spinButton, dom.startBattleButton], false);
+    setDisabled([dom.spinButton], false);
+    updateActionAvailability();
     setHtml(dom.result, `Murettebat guncellendi! Sira ${state.activePlayer}. oyuncuda!${hakiMessage}`);
     state.selectedCharacter = null;
 }
@@ -413,6 +468,7 @@ function finishDraftIfTeamsAreFull() {
     }
 
     state.activePlayer = 0;
+    updateTurnAura();
     return true;
 }
 
@@ -435,6 +491,11 @@ function moveTurnToNextPlayer() {
 }
 
 function requestBattle() {
+    if (!gameStarted || countEmptySlots() > 0) {
+        alert("Savas icin iki tayfanin da tamamlanmasi gerekiyor.");
+        return;
+    }
+
     const battleMode = dom.modeSelect?.value || "gauntlet";
     const tempResult = document.createElement("div");
 
@@ -492,15 +553,19 @@ function renderNextBattleLine() {
 function resetArena() {
     clearBattleEffects();
     resetGameState(state, karakterler);
+    gameStarted = false;
+    readyState = { 1: false, 2: false };
+    lastAnnouncedTurn = null;
     resetTeamSlots();
 
     updatePowerDisplay(1, 0);
     updatePowerDisplay(2, 0);
     updatePassDisplays();
     updateTurnDisplay();
+    updateReadyDisplays();
     setHtml(dom.result, "Murettebatlar karsi karsiya gelmek icin emir bekliyor...");
 
-    setDisabled([dom.spinButton, dom.startBattleButton], false);
+    updateActionAvailability();
     dom.resetButton?.classList.replace('display-inline-block', 'display-none');
     renderWheel();
 }
@@ -516,14 +581,177 @@ function renderWheel() {
 
 function updateTurnDisplay() {
     setText(dom.turn, `Sira: ${state.activePlayer}. Oyuncu`);
+    updateTurnAura();
+
+    if (gameStarted && state.activePlayer === state.myPlayerNumber && lastAnnouncedTurn !== state.activePlayer) {
+        showTurnToast();
+    }
+
+    lastAnnouncedTurn = state.activePlayer;
 }
 
-function updatePassDisplays() {
+function updatePassDisplays(previousPassCount = null) {
     const passCount = state.passRights[state.activePlayer] ?? 0;
     setText(dom.rerollCount, passCount);
     setText(dom.rerollButtonCount, passCount);
+    renderRerollTokens(passCount, previousPassCount);
 }
 
 function isMyTurn() {
     return state.activePlayer === state.myPlayerNumber;
+}
+
+function toggleReady() {
+    if (!socket || !state.myPlayerNumber || gameStarted) return;
+    socket.emit('setReady', !readyState[state.myPlayerNumber]);
+}
+
+function updateReadyDisplays() {
+    [1, 2].forEach(playerNumber => {
+        const status = dom.readyStatus[playerNumber];
+        if (!status) return;
+
+        status.textContent = readyState[playerNumber] ? "Ready" : "Not Ready";
+        status.classList.toggle('is-ready', readyState[playerNumber]);
+    });
+
+    if (dom.readyButton) {
+        const myReady = Boolean(readyState[state.myPlayerNumber]);
+        dom.readyButton.textContent = gameStarted ? "Draft Started" : (myReady ? "Cancel Ready" : "Ready");
+        dom.readyButton.classList.toggle('is-ready', myReady);
+        dom.readyButton.disabled = gameStarted || !state.myPlayerNumber;
+    }
+
+    if (!gameStarted) {
+        setDisabled([dom.spinButton, dom.startBattleButton], true);
+    }
+}
+
+function updateActionAvailability() {
+    if (!gameStarted) {
+        setDisabled([dom.spinButton, dom.startBattleButton], true);
+        return;
+    }
+
+    dom.spinButton.disabled = !isMyTurn() || state.activePlayer === 0;
+    dom.startBattleButton.disabled = countEmptySlots() > 0;
+}
+
+function updateTurnAura() {
+    [1, 2].forEach(playerNumber => {
+        dom.teamBoxes[playerNumber]?.classList.toggle(
+            'active-turn-aura',
+            gameStarted && state.activePlayer === playerNumber
+        );
+    });
+}
+
+function showTurnToast() {
+    if (!dom.turnToast) return;
+
+    window.clearTimeout(turnToastTimer);
+    dom.turnToast.classList.remove('show');
+    void dom.turnToast.offsetWidth;
+    dom.turnToast.classList.add('show');
+
+    turnToastTimer = window.setTimeout(() => {
+        dom.turnToast.classList.remove('show');
+    }, 1800);
+}
+
+function renderRerollTokens(passCount, previousPassCount) {
+    if (!dom.rerollTokens) return;
+
+    if (dom.rerollTokens.children.length === 0) {
+        for (let index = 0; index < 5; index++) {
+            const token = document.createElement('span');
+            token.className = 'reroll-token';
+            token.textContent = '฿';
+            dom.rerollTokens.appendChild(token);
+        }
+    }
+
+    Array.from(dom.rerollTokens.children).forEach((token, index) => {
+        const isActive = index < passCount;
+        const wasSpentNow = previousPassCount !== null && index === passCount && previousPassCount > passCount;
+
+        token.classList.toggle('spent', !isActive);
+        token.classList.remove('burst');
+
+        if (wasSpentNow) {
+            void token.offsetWidth;
+            token.classList.add('burst');
+        }
+    });
+}
+
+function bindAudioMixer() {
+    const settings = getAudioSettings();
+
+    if (dom.masterVolume) dom.masterVolume.value = Math.round(settings.master * 100);
+    if (dom.musicVolume) dom.musicVolume.value = Math.round(settings.music * 100);
+    if (dom.effectsVolume) dom.effectsVolume.value = Math.round(settings.effects * 100);
+    if (dom.muteAll) dom.muteAll.checked = settings.muted;
+
+    dom.settingsToggle?.addEventListener('click', event => {
+        event.stopPropagation();
+        dom.settingsPanel?.classList.toggle('display-none');
+    });
+
+    document.addEventListener('click', event => {
+        if (!dom.settingsPanel || dom.settingsPanel.classList.contains('display-none')) return;
+        if (dom.settingsPanel.contains(event.target) || dom.settingsToggle?.contains(event.target)) return;
+        dom.settingsPanel.classList.add('display-none');
+    });
+
+    [dom.masterVolume, dom.musicVolume, dom.effectsVolume].filter(Boolean).forEach(input => {
+        input.addEventListener('input', updateMixerFromInputs);
+    });
+
+    dom.muteAll?.addEventListener('change', updateMixerFromInputs);
+}
+
+function updateMixerFromInputs() {
+    updateAudioSettings({
+        master: Number(dom.masterVolume?.value ?? 80) / 100,
+        music: Number(dom.musicVolume?.value ?? 75) / 100,
+        effects: Number(dom.effectsVolume?.value ?? 85) / 100,
+        muted: Boolean(dom.muteAll?.checked)
+    });
+}
+
+function renderStampPanel() {
+    if (!dom.stampPanel) return;
+
+    const stamps = ['😀', '😂', '😭', '😎', '❤️', '👍', '👎', '🏴‍☠️', '⚓', '☠️', '⚔️', '🔥', '🍖', '👒'];
+    dom.stampPanel.innerHTML = '';
+
+    stamps.forEach(stamp => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'stamp-btn';
+        button.textContent = stamp;
+        button.setAttribute('aria-label', `Stamp ${stamp}`);
+        button.addEventListener('click', () => sendStamp(stamp));
+        dom.stampPanel.appendChild(button);
+    });
+}
+
+function sendStamp(stamp) {
+    const now = Date.now();
+    if (!socket || now - lastStampSentAt < 1200) return;
+
+    lastStampSentAt = now;
+    socket.emit('sendStamp', stamp);
+}
+
+function showStamp(data) {
+    if (!dom.stampStage || !data?.stamp) return;
+
+    const stamp = document.createElement('div');
+    stamp.className = `floating-stamp player-${data.player === 2 ? 2 : 1}`;
+    stamp.textContent = data.stamp;
+    dom.stampStage.appendChild(stamp);
+
+    window.setTimeout(() => stamp.remove(), 2800);
 }
