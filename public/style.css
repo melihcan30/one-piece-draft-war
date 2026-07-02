@@ -1080,3 +1080,74 @@ body {
     .stamp-btn { width: 26px; height: 26px; font-size: 0.9rem; }
     .stamp-panel { margin: 6px 0; gap: 4px; }
 }
+
+/* YENİ: Skor Paneli ve Timer Stilleri */
+.match-scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 2px solid #f39c12;
+    margin-top: 10px;
+}
+
+.player-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-score .name { font-family: 'Cinzel', serif; font-size: 1.1rem; color: #fff; }
+.player-score .score { font-family: 'Permanent Marker', cursive; font-size: 2.5rem; color: #f1c40f; }
+
+.round-dots { display: flex; gap: 5px; margin-top: 5px; }
+.round-dots .dot {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    border: 2px solid #f1c40f;
+    background: transparent;
+}
+.round-dots .dot.won { background: #2ecc71; border-color: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+
+.vs-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#active-mode-display { font-weight: bold; color: #3498db; letter-spacing: 2px; }
+
+.timer-circle {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: #e74c3c;
+    color: white;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 1.8rem; font-weight: bold;
+    border: 3px solid #c0392b;
+    box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+    transition: all 0.3s ease;
+}
+.timer-circle.warning { background: #c0392b; animation: pulse 1s infinite; }
+
+.mode-btn {
+    padding: 15px 30px; margin: 5px;
+    background: #2c3e50; color: white;
+    border: 2px solid #f1c40f; border-radius: 8px;
+    font-size: 1.2rem; cursor: pointer;
+    transition: 0.3s;
+}
+.mode-btn:hover:not(:disabled) { background: #f39c12; color: #000; transform: scale(1.05); }
+.mode-btn:disabled { opacity: 0.5; border-color: #7f8c8d; cursor: not-allowed; }
+
+/* Modalin ekranda kesin olarak görünmesini veya gizlenmesini garantileyen sınıflar */
+.modal-overlay.display-none {
+    display: none !important;
+}
+
+.modal-overlay.display-flex {
+    display: flex !important;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}

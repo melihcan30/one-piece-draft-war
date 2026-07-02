@@ -59,11 +59,14 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     htmlResult += "<br>";
 
     if (idx1 < t1.length) {
-        htmlResult += `<span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span>`;
+        // data-winner="1" eklendi
+        htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span></div>`;
     } else if (idx2 < t2.length) {
-        htmlResult += `<span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 2. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span>`;
+        // data-winner="2" eklendi
+        htmlResult += `<div class="match-final-result" data-winner="2"><span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 2. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span></div>`;
     } else {
-        htmlResult += `<span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>🤝 Beraberlik!</span>`;
+        // data-winner="0" eklendi
+        htmlResult += `<div class="match-final-result" data-winner="0"><span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>🤝 Beraberlik!</span></div>`;
     }
 
     resultDisplay.innerHTML = htmlResult;
@@ -71,49 +74,65 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 
 // 2. MOD: MATCHUP
 export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
-    turnDisplay.textContent = "⚔️ Savaş Başladı! Düellolar İnceleniyor...";
+    let p1Wins = 0;
+    let p2Wins = 0;
     
-    let p1Galibiyet = 0;
-    let p2Galibiyet = 0;
-    let detaylarHtml = "<b>🏴‍☠️ DÜELLO SONUÇLARI 🏴‍☠️</b><br><br>";
-
+    // 5 Slot için döngü
     for (let i = 0; i < 5; i++) {
-        let p1Char = p1Takim[i];
-        let p2Char = p2Takim[i];
+        let c1 = p1Takim[i];
+        let c2 = p2Takim[i];
         
-        if (!p1Char && !p2Char) {
-            detaylarHtml += `🥊 <b>Raunt ${i + 1}:</b> Boş Slot vs Boş Slot ➔ <span style='color:#7f8c8d;'>Savaş Yok</span><br>`;
-            continue;
+        if (!c1 || !c2) continue; // Boş slot varsa atla
+        
+        let p1Power = c1.power || c1.guc || 0;
+        let p2Power = c2.power || c2.guc || 0;
+        
+        // Eğer önceki turda haki yemiş ve bayılmışsa gücü 0 kabul edilir
+        if (c1.isFainted) p1Power = 0;
+        if (c2.isFainted) p2Power = 0;
+
+        let diff = Math.abs(p1Power - p2Power);
+
+        // HAKİ KONTROLÜ (Güç farkı 15'ten büyükse ve karakterler baygın değilse)
+        if (diff > 15 && p1Power > 0 && p2Power > 0) {
+            resultDisplay.innerHTML += `<div class="haki-clash" style="color: red; font-weight: bold; margin: 10px 0;">⚡ HAKİ ÇARPIŞMASI! Güç farkı: ${diff} ⚡</div>`;
+            
+            let nextIndex = i + 1; 
+            if (p1Power > p2Power && p2Takim[nextIndex]) {
+                p2Takim[nextIndex].isFainted = true;
+                p2Takim[nextIndex].power = 0;
+                p2Takim[nextIndex].guc = 0; // İki ihtimali de sıfırlıyoruz
+                resultDisplay.innerHTML += `<div class="faint-text">Sarsıcı Haki! 2. Oyuncunun sıradaki savaşçısı bayıldı!</div>`;
+            } else if (p2Power > p1Power && p1Takim[nextIndex]) {
+                p1Takim[nextIndex].isFainted = true;
+                p1Takim[nextIndex].power = 0;
+                p1Takim[nextIndex].guc = 0;
+                resultDisplay.innerHTML += `<div class="faint-text">Sarsıcı Haki! 1. Oyuncunun sıradaki savaşçısı bayıldı!</div>`;
+            }
         }
 
-        let k1 = p1Char ? { ...p1Char } : { isim: "Boş Slot", guc: 0, seviye: 0 };
-        let k2 = p2Char ? { ...p2Char } : { isim: "Boş Slot", guc: 0, seviye: 0 };
-
-        const sonuc = hibritDovus(k1, k2);
-        detaylarHtml += `🥊 <b>Raunt ${i + 1}:</b> ${k1.isim} <b>vs</b> ${k2.isim} ➔ `;
-
-        if (sonuc.kazanan.isim === k1.isim && k1.isim !== "Boş Slot") {
-            p1Galibiyet++;
-            detaylarHtml += `<span style='color:#2ecc71; font-weight:bold;'>1. Oyuncu Kazandı</span> (%${sonuc.sans} şansla)<br>`;
-        } else if (sonuc.kazanan.isim === k2.isim && k2.isim !== "Boş Slot") {
-            p2Galibiyet++;
-            detaylarHtml += `<span style='color:#e74c3c; font-weight:bold;'>2. Oyuncu Kazandı</span> (%${sonuc.sans} şansla)<br>`;
+        // Raunt Kazananını Belirleme
+        if (p1Power > p2Power) {
+            p1Wins++;
+            resultDisplay.innerHTML += `<div>Raunt ${i+1}: 1. Oyuncu kazandı! (${c1.isim || c1.name} vs ${c2.isim || c2.name})</div>`;
+        } else if (p2Power > p1Power) {
+            p2Wins++;
+            resultDisplay.innerHTML += `<div>Raunt ${i+1}: 2. Oyuncu kazandı! (${c2.isim || c2.name} vs ${c1.isim || c1.name})</div>`;
         } else {
-            detaylarHtml += `<span style='color:#f1c40f;'>Savaş Yok</span><br>`;
+            resultDisplay.innerHTML += `<div>Raunt ${i+1}: Berabere!</div>`;
         }
     }
 
-    let genelSkorHtml = `<br><b>📊 GENEL SKOR: 1. Oyuncu [ ${p1Galibiyet} - ${p2Galibiyet} ] 2. Oyuncu</b><br><br>`;
+    // MAÇ SONUCU VE KESİN KAZANAN ETİKETİ
+    resultDisplay.innerHTML += `<hr><div><b>Skor:</b> 1. Oyuncu: ${p1Wins} - 2. Oyuncu: ${p2Wins}</div>`;
     
-    if (p1Galibiyet > p2Galibiyet) {
-        genelSkorHtml += `<span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Karşılaşmayı Üstünlükle Kazandı!</span>`;
-    } else if (p2Galibiyet > p1Galibiyet) {
-        genelSkorHtml += `<span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 2. Oyuncu Karşılaşmayı Üstünlükle Kazandı!</span>`;
+    if (p1Wins > p2Wins) {
+        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="1">Maçı 1. Oyuncu Kazandı!</div>`;
+    } else if (p2Wins > p1Wins) {
+        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="2">Maçı 2. Oyuncu Kazandı!</div>`;
     } else {
-        genelSkorHtml += `<span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>🤝 Skor Eşit, Beraberlik!</span>`;
+        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="0">Maç Berabere!</div>`;
     }
-    
-    resultDisplay.innerHTML = detaylarHtml + genelSkorHtml;
 }
 
 // 3. MOD: ROLE SYNERGY
@@ -140,9 +159,11 @@ export function runSynergyBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     const zar = Math.random() * 100;
 
     if (zar <= p1Sans) {
-        htmlResult += `<span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 1. Oyuncu Kazandı! (%${Math.round(p1Sans)} şansla)</span>`;
+        // data-winner="1" eklendi
+        htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 1. Oyuncu Kazandı! (%${Math.round(p1Sans)} şansla)</span></div>`;
     } else {
-        htmlResult += `<span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 2. Oyuncu Kazandı! (%${Math.round(100 - p1Sans)} şansla)</span>`;
+        // data-winner="2" eklendi
+        htmlResult += `<div class="match-final-result" data-winner="2"><span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 2. Oyuncu Kazandı! (%${Math.round(100 - p1Sans)} şansla)</span></div>`;
     }
 
     resultDisplay.innerHTML = htmlResult;
