@@ -285,6 +285,11 @@ function setupSocketListeners() {
         }
     });
 
+    // 🌟 SUNUCUDAN GELEN DRAFT ESNASINDAKİ HAKİ SİNYALİNİ DİNLE
+    socket.on('draftHakiClash', () => {
+        triggerHakiLightning(); 
+    });
+
     socket.on('autoPassed', (data) => {
         const characterModal = document.getElementById("character-modal");
         if (characterModal && !characterModal.classList.contains('display-none')) {

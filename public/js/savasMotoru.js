@@ -76,6 +76,7 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     let p1Wins = 0;
     let p2Wins = 0;
+    let htmlResult = `<b>⚔️ MATCHUP SAVAŞ RAPORU ⚔️</b><br><br>`;
     
     // 5 Slot için döngü
     for (let i = 0; i < 5; i++) {
@@ -84,55 +85,33 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
         
         if (!c1 || !c2) continue; // Boş slot varsa atla
         
-        let p1Power = c1.power || c1.guc || 0;
-        let p2Power = c2.power || c2.guc || 0;
-        
-        // Eğer önceki turda haki yemiş ve bayılmışsa gücü 0 kabul edilir
-        if (c1.isFainted) p1Power = 0;
-        if (c2.isFainted) p2Power = 0;
+        let p1Guc = c1.guc || 0;
+        let p2Guc = c2.guc || 0;
 
-        let diff = Math.abs(p1Power - p2Power);
-
-        // HAKİ KONTROLÜ (Güç farkı 15'ten büyükse ve karakterler baygın değilse)
-        if (diff > 15 && p1Power > 0 && p2Power > 0) {
-            resultDisplay.innerHTML += `<div class="haki-clash" style="color: red; font-weight: bold; margin: 10px 0;">⚡ HAKİ ÇARPIŞMASI! Güç farkı: ${diff} ⚡</div>`;
-            
-            let nextIndex = i + 1; 
-            if (p1Power > p2Power && p2Takim[nextIndex]) {
-                p2Takim[nextIndex].isFainted = true;
-                p2Takim[nextIndex].power = 0;
-                p2Takim[nextIndex].guc = 0; // İki ihtimali de sıfırlıyoruz
-                resultDisplay.innerHTML += `<div class="faint-text">Sarsıcı Haki! 2. Oyuncunun sıradaki savaşçısı bayıldı!</div>`;
-            } else if (p2Power > p1Power && p1Takim[nextIndex]) {
-                p1Takim[nextIndex].isFainted = true;
-                p1Takim[nextIndex].power = 0;
-                p1Takim[nextIndex].guc = 0;
-                resultDisplay.innerHTML += `<div class="faint-text">Sarsıcı Haki! 1. Oyuncunun sıradaki savaşçısı bayıldı!</div>`;
-            }
-        }
-
-        // Raunt Kazananını Belirleme
-        if (p1Power > p2Power) {
+        // Raunt Kazananını Belirleme ve <br> ile adım adım ayırma
+        if (p1Guc > p2Guc) {
             p1Wins++;
-            resultDisplay.innerHTML += `<div>Raunt ${i+1}: 1. Oyuncu kazandı! (${c1.isim || c1.name} vs ${c2.isim || c2.name})</div>`;
-        } else if (p2Power > p1Power) {
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 1. Oyuncu kazandı! (${c1.isim} vs ${c2.isim})<br>`;
+        } else if (p2Guc > p1Guc) {
             p2Wins++;
-            resultDisplay.innerHTML += `<div>Raunt ${i+1}: 2. Oyuncu kazandı! (${c2.isim || c2.name} vs ${c1.isim || c1.name})</div>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 2. Oyuncu kazandı! (${c2.isim} vs ${c1.isim})<br>`;
         } else {
-            resultDisplay.innerHTML += `<div>Raunt ${i+1}: Berabere!</div>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> Berabere! (${c1.isim} vs ${c2.isim})<br>`;
         }
     }
 
     // MAÇ SONUCU VE KESİN KAZANAN ETİKETİ
-    resultDisplay.innerHTML += `<hr><div><b>Skor:</b> 1. Oyuncu: ${p1Wins} - 2. Oyuncu: ${p2Wins}</div>`;
+    htmlResult += `<br><div><b>Skor:</b> 1. Oyuncu: ${p1Wins} - 2. Oyuncu: ${p2Wins}</div><br>`;
     
     if (p1Wins > p2Wins) {
-        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="1">Maçı 1. Oyuncu Kazandı!</div>`;
+        htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Matchup Savaşını Kazandı!</span></div>`;
     } else if (p2Wins > p1Wins) {
-        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="2">Maçı 2. Oyuncu Kazandı!</div>`;
+        htmlResult += `<div class="match-final-result" data-winner="2"><span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 2. Oyuncu Matchup Savaşını Kazandı!</span></div>`;
     } else {
-        resultDisplay.innerHTML += `<div class="match-final-result" data-winner="0">Maç Berabere!</div>`;
+        htmlResult += `<div class="match-final-result" data-winner="0"><span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>🤝 Matchup Berabere Bitti!</span></div>`;
     }
+
+    resultDisplay.innerHTML = htmlResult;
 }
 
 // 3. MOD: ROLE SYNERGY

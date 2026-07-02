@@ -307,10 +307,17 @@ function acceptCharacter(socket, room, data) {
 
     if (selectedCharacter) {
         room.gameState.aktifKarakterler = room.gameState.aktifKarakterler.filter(character => character.id !== data.charId);
-        updateServerTeamState(room, data.slotIndex, selectedCharacter);
+        
+        // 🌟 DEĞİŞİKLİK: Fonksiyondan Haki tetiklenip tetiklenmediği bilgisini alıyoruz
+        const hakiOlduMu = updateServerTeamState(room, data.slotIndex, selectedCharacter);
+        
+        // Eğer Haki tetiklendiyse tüm odaya animasyon sinyali gönder
+        if (hakiOlduMu) {
+            io.to(socket.roomName).emit('draftHakiClash');
+        }
     }
 
-    // 🌟 ÇÖZÜM 2: Karakter seçildiğinde SIRA DEĞİŞTİRİLİYOR!
+    // Sıra DEĞİŞTİRİLİYOR
     room.gameState.aktifOyuncu = room.gameState.aktifOyuncu === 1 ? 2 : 1;
     room.activePlayer = room.gameState.aktifOyuncu;
 
@@ -320,8 +327,6 @@ function acceptCharacter(socket, room, data) {
     });
     
     emitRoomStatus(socket.roomName);
-    
-    // 🌟 ÇÖZÜM 2: Sıra karşıya geçtiği için sayacı SIFIRLA ve BAŞLAT!
     startDraftTimer(socket.roomName); 
 }
 
@@ -343,8 +348,9 @@ function passTurn(socket, room) {
 function updateServerTeamState(room, slotIndex, character) {
     const teamKey = room.activePlayer === 1 ? 'p1Takim' : 'p2Takim';
     const powerKey = room.activePlayer === 1 ? 'p1ToplamGuc' : 'p2ToplamGuc';
+    let hakiTetiklendi = false; // 🌟 Haki kontrol değişkeni
 
-    if (slotIndex < 0 || slotIndex >= TEAM_SIZE || room.gameState[teamKey][slotIndex]) return;
+    if (slotIndex < 0 || slotIndex >= TEAM_SIZE || room.gameState[teamKey][slotIndex]) return false;
 
     room.gameState[teamKey][slotIndex] = {
         id: character.id,
@@ -354,6 +360,39 @@ function updateServerTeamState(room, slotIndex, character) {
         taraf: character.taraf
     };
     room.gameState[powerKey] += character.guc;
+
+    // ⚡ YENİ EKLENEN HAKİ MEKANİĞİ ⚡
+    if (room.matchState.currentMode === 'matchup') {
+        const p1 = room.gameState.p1Takim[slotIndex];
+        const p2 = room.gameState.p2Takim[slotIndex];
+
+        // İki tarafın da o slotu doluysa ve baygın değillerse (seviyeleri 0'dan büyükse)
+        if (p1 && p2 && p1.seviye > 0 && p2.seviye > 0) {
+            const fark = Math.abs(p1.seviye - p2.seviye);
+            
+            // 🌟 15 SEVİYE FARK KONTROLÜ
+            if (fark > 15) {
+                const nextIndex = slotIndex + 1;
+                
+                // Eğer bir alt slot varsa (destek rolü bayıltacak bir alt rol bulamaz)
+                if (nextIndex < TEAM_SIZE) {
+                    const kaybedenKey = p1.seviye > p2.seviye ? 'p2Takim' : 'p1Takim';
+                    
+                    // Alt slotu tamamen iptal et, BAYGIN statüsüne sok
+                    room.gameState[kaybedenKey][nextIndex] = {
+                        id: 'baygin',
+                        isim: 'BAYGIN',
+                        guc: 0,
+                        seviye: 0,
+                        taraf: 'none'
+                    };
+                    hakiTetiklendi = true;
+                }
+            }
+        }
+    }
+    
+    return hakiTetiklendi;
 }
 
 function syncActivePlayer(socket, data) {
