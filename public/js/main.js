@@ -223,7 +223,17 @@ function setupSocketListeners() {
 
         btns.forEach(btn => {
             const modeName = btn.getAttribute('data-mode');
-            btn.disabled = data.playedModes.includes(modeName);
+            const isPlayed = data.playedModes.includes(modeName);
+        
+            if (isPlayed) {
+                btn.disabled = true;
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('disabled-mode'); // CSS'e kilitli olduğunu bildiriyoruz
+            } else {
+                btn.disabled = false;
+                btn.removeAttribute('disabled');
+                btn.classList.remove('disabled-mode');
+            }
         });
 
         if (data.selector === myId) {
@@ -303,11 +313,13 @@ function setupSocketListeners() {
     });
 
     socket.on('updateScores', (data) => {
-        const p1Score = document.getElementById('p1-match-score');
-        const p2Score = document.getElementById('p2-match-score');
+        // Hem eski hem yeni id ihtimallerine karşı güvenli seçim
+        const p1Score = document.getElementById('p1-match-score') || document.getElementById('p1-score');
+        const p2Score = document.getElementById('p2-match-score') || document.getElementById('p2-score');
+    
         if (p1Score) p1Score.textContent = data.matchScore.p1;
         if (p2Score) p2Score.textContent = data.matchScore.p2;
-        
+    
         updateRoundDots('p1-round-dots', data.roundScore.p1);
         updateRoundDots('p2-round-dots', data.roundScore.p2);
     });
@@ -356,14 +368,15 @@ function updateRoomStatus(data) {
         if (data.matchState.status === 'DRAFTING') {
             gameStarted = true;
         }
-        const p1Score = document.getElementById('p1-match-score');
-        const p2Score = document.getElementById('p2-match-score');
+        const p1Score = document.getElementById('p1-match-score') || document.getElementById('p1-score');
+        const p2Score = document.getElementById('p2-match-score') || document.getElementById('p2-score');
         if (p1Score) p1Score.textContent = data.matchState.p1MatchScore;
         if (p2Score) p2Score.textContent = data.matchState.p2MatchScore;
-        
-        updateRoundDots('p1-round-dots', data.matchState.p1RoundWins);
-        updateRoundDots('p2-round-dots', data.matchState.p2RoundWins);
     }
+    
+    updateRoundDots('p1-round-dots', data.matchState.p1RoundWins);
+    updateRoundDots('p2-round-dots', data.matchState.p2RoundWins);
+}
 
     updateTurnDisplay();
     updatePassDisplays();
@@ -375,7 +388,7 @@ function updateRoomStatus(data) {
             socket.emit('syncInitialCharacters', karakterler);
         }
     }
-}
+
 
 function setPlayerCard(playerNumber, playerData) {
     // Sunucu taraflı name veya username parametrelerinin ikisini de kontrol altına alıyoruz
@@ -503,6 +516,10 @@ function requestPass() {
         alert("Pas hakkiniz kalmadi!");
         return;
     }
+
+    state.passRights[state.activePlayer]--;
+    updatePassDisplays();
+    //hideFromFlex(dom.characterModal);
     socket.emit('requestPass');
 }
 
@@ -532,6 +549,7 @@ function requestAccept() {
 function runAcceptAction(data) {
     hideFromFlex(dom.characterModal);
     state.selectedCharacter = null;
+    moveTurnToNextPlayer();
     updateActionAvailability();
 }
 
@@ -603,33 +621,51 @@ function triggerTurnToast() {
     }, 1800);
 }
 
-// 2. GÜNCELLEME: Pas hakkı göstergesi artık her zaman "Sırası Gelenin" tokenlerini gösterir
-function updatePassDisplays(previousPassCount = null) {
-    // Aktif oyuncu kimse, ekrandaki sarı jetonlar onun pas hakkını yansıtır!
-    const activePassCount = state.activePlayer ? state.passRights[state.activePlayer] : state.passRights[1];
+function updatePassDisplays() {
+    const activePlayer = state.activePlayer || 1;
+    const activePassCount = state.passRights[activePlayer];
+    
+    // Animasyon takibi için hafıza alanı oluşturuyoruz
+    if (!state.lastRenderedPassCount) {
+        state.lastRenderedPassCount = {};
+    }
+    const previousPassCount = state.lastRenderedPassCount[activePlayer] ?? activePassCount;
     
     renderRerollTokens(activePassCount, previousPassCount);
+    
+    // Bir sonraki tık durumu için mevcut hakkı hafızaya al
+    state.lastRenderedPassCount[activePlayer] = activePassCount;
+    
     setText(dom.rerollCount, `Pas Haklari - P1: ${state.passRights[1]} | P2: ${state.passRights[2]}`);
 }
 
 function renderRerollTokens(passCount, previousPassCount) {
     if (!dom.rerollTokens) return;
+    
+    // Eğer jetonlar DOM'da henüz yoksa altın sarısı daireleri oluştur
     if (dom.rerollTokens.children.length === 0) {
+        dom.rerollTokens.innerHTML = '';
         for (let index = 0; index < 5; index++) {
             const token = document.createElement('span');
-            token.className = 'reroll-token';
-            token.textContent = '฿';
+            token.className = 'token-dot'; // CSS ile tam uyumlu sınıf ismi
             dom.rerollTokens.appendChild(token);
         }
     }
+    
     Array.from(dom.rerollTokens.children).forEach((token, index) => {
         const isActive = index < passCount;
-        const wasSpentNow = previousPassCount !== null && index === passCount && previousPassCount > passCount;
-        token.classList.toggle('spent', !isActive);
-        token.classList.remove('burst');
+        const wasSpentNow = index === passCount && previousPassCount > passCount;
+        
+        // Hakkı gitmişse .used sınıfı eklenir (CSS otomatik animasyonu oynatır)
+        if (!isActive) {
+            token.classList.add('used');
+        } else {
+            token.classList.remove('used');
+        }
+        
+        // Eğer tam şu an harcandıysa animasyonun sıfırlanıp baştan oynamasını tetikle
         if (wasSpentNow) {
-            void token.offsetWidth;
-            token.classList.add('burst');
+            void token.offsetWidth; 
         }
     });
 }
@@ -682,8 +718,17 @@ function sendStamp(stamp) {
 function showStamp(data) {
     if (!dom.stampStage || !data?.stamp) return;
     const stamp = document.createElement('div');
-    stamp.className = `floating-stamp player-${data.player === 2 ? 2 : 1}`;
+    stamp.className = 'floating-emoji'; // CSS'teki kocaman uçan emoji sınıfı
     stamp.textContent = data.stamp;
+    
+    // Emoji hangi oyuncudan geldiyse ekranın o tarafına konumlandırıyoruz
+    if (data.player === 1) {
+        stamp.style.left = '15%'; // Sol oyuncunun takımı üstünde
+    } else {
+        stamp.style.right = '15%'; // Sağ oyuncunun takımı üstünde
+    }
+    stamp.style.bottom = '25%'; // Ekranın alt-orta kısmından süzülmeye başlasın
+    
     dom.stampStage.appendChild(stamp);
     setTimeout(() => stamp.remove(), 2500);
 }
@@ -808,10 +853,11 @@ function updateRoundDots(containerId, winCount) {
     if (!container) return;
     const dots = container.querySelectorAll('.dot');
     dots.forEach((dot, index) => {
+        // Eski 'won' sınıfı yerine CSS'e yön veren 'filled' sınıfını kullanıyoruz
         if (index < winCount) {
-            dot.classList.add('won');
+            dot.classList.add('filled');
         } else {
-            dot.classList.remove('won');
+            dot.classList.remove('filled');
         }
     });
 }

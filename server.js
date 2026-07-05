@@ -19,10 +19,10 @@ io.on('connection', socket => {
 
     socket.on('joinRoom', playerData => joinRoom(socket, playerData));
     socket.on('syncInitialCharacters', characters => syncInitialCharacters(socket, characters));
-    
+
     // 🌟 ÇÖZÜM: Çark durduktan sonra gelen karakter verisini odaya güvenle işleyen yeni event dinleyicisi
     socket.on('syncSpunCharacters', characters => runIfAuthorized(socket, room => syncSpunCharacters(socket, room, characters)));
-    
+
     socket.on('requestSpin', () => runIfAuthorized(socket, room => spinWheel(socket, room)));
     socket.on('requestPass', () => runIfAuthorized(socket, room => passTurn(socket, room)));
     socket.on('requestAccept', data => runIfAuthorized(socket, room => acceptCharacter(socket, room, data)));
@@ -35,7 +35,7 @@ io.on('connection', socket => {
 
         // 🌟 ÇÖZÜM: Yeni mod başladığı için oyuncu takımlarını, karakterleri ve pas haklarını SIFIRLA!
         room.gameState = createInitialGameState();
-        room.activePlayer = 1; 
+        room.activePlayer = 1;
         //room.ready = { 1: false, 2: false }; // Hazır durumlarını yeni evre için temizle
 
         room.matchState.currentMode = modeName;
@@ -77,7 +77,7 @@ io.on('connection', socket => {
         if (!room || room.matchState.status !== 'DRAFTING') return;
 
         room.matchState.status = 'ROUND_RESULT';
-        clearInterval(room.matchState.turnTimer); 
+        clearInterval(room.matchState.turnTimer);
 
         if (data.kazananId === 1) room.matchState.p1RoundWins++;
         if (data.kazananId === 2) room.matchState.p2RoundWins++;
@@ -91,16 +91,16 @@ io.on('connection', socket => {
             handleModeEnd(socket.roomName, data.kazananId);
         } else {
             room.matchState.currentRound++;
-            
+
             // Yeni raunt için draft alanını ve pas haklarını temizle
             room.gameState = createInitialGameState();
             room.activePlayer = 1;
-            
+
             // 🌟 ÇÖZÜM: İkinci raunta geçerken oyuncuların "Hazır" durumlarını ve oda statüsünü sıfırlıyoruz!
             room.ready = { 1: false, 2: false };
             room.matchState.status = 'WAITING';
-            
-            io.to(socket.roomName).emit('runResetAction'); 
+
+            io.to(socket.roomName).emit('runResetAction');
             emitRoomStatus(socket.roomName);
         }
     });
@@ -157,7 +157,7 @@ function joinRoom(socket, playerData) {
     if (!room.players.player1) {
         room.players.player1 = socket.id;
         // 🌟 Avatarı kaydediyoruz
-        room.p1Data = { username: finalName, avatar: finalAvatar }; 
+        room.p1Data = { username: finalName, avatar: finalAvatar };
     } else if (!room.players.player2 && room.players.player1 !== socket.id) {
         room.players.player2 = socket.id;
         // 🌟 Avatarı kaydediyoruz
@@ -173,10 +173,10 @@ function syncInitialCharacters(socket, characters) {
     if (!room) return;
 
     room.gameState.aktifKarakterler = Array.isArray(characters) ? characters : [characters];
-    
+
     // 🌟 ÇÖZÜM: Tüm karakterleri yazdırmak yerine sadece sayısını yazdırıyoruz
     console.log(`⚓ [${socket.roomName}] ${room.gameState.aktifKarakterler.length} karakter havuza eklendi.`);
-    
+
     io.to(socket.roomName).emit('initGameState', room.gameState);
     emitRoomStatus(socket.roomName);
 }
@@ -184,10 +184,10 @@ function syncInitialCharacters(socket, characters) {
 // 2. GÜNCELLEME: Çark dönüşündeki log düzeltildi
 function syncSpunCharacters(socket, room, characters) {
     room.gameState.aktifKarakterler = Array.isArray(characters) ? characters : [characters];
-    
+
     // 🌟 ÇÖZÜM: Tüm karakterleri yazdırmak yerine sadece sayısını yazdırıyoruz
     console.log(`🎰 [${socket.roomName}] Çark sonucu ${room.gameState.aktifKarakterler.length} karakter gösteriliyor.`);
-    
+
     io.to(socket.roomName).emit('charactersRevealed', room.gameState.aktifKarakterler);
     emitRoomStatus(socket.roomName);
 }
@@ -224,10 +224,10 @@ function handleModeEnd(roomName, modeKazananId) {
     if (room.matchState.p1MatchScore >= 2 || room.matchState.p2MatchScore >= 2) {
         room.matchState.status = 'FINISHED';
         const matchWinner = room.matchState.p1MatchScore >= 2 ? 1 : 2;
-        
+
         console.log(`🎉 BÜYÜK FİNAL! OYUNCU ${matchWinner} KAZANDI!`);
         io.to(roomName).emit('matchFinished', { winnerId: matchWinner });
-        
+
         emitRoomStatus(roomName);
         return; // İşlemi burada kes, 3. modu SEÇTİRME!
     }
@@ -282,7 +282,7 @@ function setReady(socket, isReady) {
         if (room.matchState.currentRound > 1) {
             room.matchState.status = 'DRAFTING';
             room.gameState.oyunBasladi = true;
-            
+
             io.to(roomName).emit('gameStarted', {
                 aktifOyuncu: room.gameState.aktifOyuncu,
                 p1PasHakki: room.gameState.p1PasHakki,
@@ -307,10 +307,10 @@ function acceptCharacter(socket, room, data) {
 
     if (selectedCharacter) {
         room.gameState.aktifKarakterler = room.gameState.aktifKarakterler.filter(character => character.id !== data.charId);
-        
+
         // 🌟 DEĞİŞİKLİK: Fonksiyondan Haki tetiklenip tetiklenmediği bilgisini alıyoruz
         const hakiOlduMu = updateServerTeamState(room, data.slotIndex, selectedCharacter);
-        
+
         // Eğer Haki tetiklendiyse tüm odaya animasyon sinyali gönder
         if (hakiOlduMu) {
             io.to(socket.roomName).emit('draftHakiClash');
@@ -325,9 +325,9 @@ function acceptCharacter(socket, room, data) {
         slotIndex: data.slotIndex,
         charId: data.charId
     });
-    
+
     emitRoomStatus(socket.roomName);
-    startDraftTimer(socket.roomName); 
+    startDraftTimer(socket.roomName);
 }
 
 // 1. GÜNCELLEME: Pas geçince sıra değişmesin
@@ -340,9 +340,9 @@ function passTurn(socket, room) {
 
     io.to(socket.roomName).emit('runPassAction');
     emitRoomStatus(socket.roomName);
-    
+
     // Süreyi oyuncu için sıfırdan başlat
-    startDraftTimer(socket.roomName); 
+    startDraftTimer(socket.roomName);
 }
 
 function updateServerTeamState(room, slotIndex, character) {
@@ -369,15 +369,15 @@ function updateServerTeamState(room, slotIndex, character) {
         // İki tarafın da o slotu doluysa ve baygın değillerse (seviyeleri 0'dan büyükse)
         if (p1 && p2 && p1.seviye > 0 && p2.seviye > 0) {
             const fark = Math.abs(p1.seviye - p2.seviye);
-            
+
             // 🌟 15 SEVİYE FARK KONTROLÜ
             if (fark > 15) {
                 const nextIndex = slotIndex + 1;
-                
+
                 // Eğer bir alt slot varsa (destek rolü bayıltacak bir alt rol bulamaz)
                 if (nextIndex < TEAM_SIZE) {
                     const kaybedenKey = p1.seviye > p2.seviye ? 'p2Takim' : 'p1Takim';
-                    
+
                     // Alt slotu tamamen iptal et, BAYGIN statüsüne sok
                     room.gameState[kaybedenKey][nextIndex] = {
                         id: 'baygin',
@@ -391,7 +391,7 @@ function updateServerTeamState(room, slotIndex, character) {
             }
         }
     }
-    
+
     return hakiTetiklendi;
 }
 
@@ -516,7 +516,7 @@ function startDraftTimer(roomName) {
 
     clearInterval(room.matchState.turnTimer);
     room.matchState.timeLeft = 30;
-    
+
     io.to(roomName).emit('timerStarted', room.matchState.timeLeft);
 
     room.matchState.turnTimer = setInterval(() => {
@@ -533,9 +533,9 @@ function startDraftTimer(roomName) {
 function autoPassTurn(roomName) {
     const room = rooms[roomName];
     if (!room) return;
-    
+
     room.gameState.aktifOyuncu = room.gameState.aktifOyuncu === 1 ? 2 : 1;
-    room.activePlayer = room.gameState.aktifOyuncu; 
+    room.activePlayer = room.gameState.aktifOyuncu;
     io.to(roomName).emit('autoPassed', { aktifOyuncu: room.gameState.aktifOyuncu });
     emitRoomStatus(roomName);
 }
