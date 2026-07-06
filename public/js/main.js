@@ -872,6 +872,61 @@ function updateRoundDots(containerId, winCount) {
     });
 }
 
+// ==========================================
+// ⚙️ AYARLAR MENÜSÜ KONTROLLERİ
+// ==========================================
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const closeSettingsBtn = document.getElementById('close-settings-btn');
+
+// Çark butonuna tıklayınca menüyü aç (display-none sınıfını kaldır)
+if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('display-none');
+    });
+}
+
+// Kapat butonuna tıklayınca menüyü gizle (display-none sınıfını ekle)
+if (closeSettingsBtn && settingsModal) {
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('display-none');
+    });
+}
+
+// ==========================================
+// 🔊 SES SEVİYESİ BAĞLANTILARI (sesMotoru.js Entegrasyonu)
+// ==========================================
+const sfxVolumeSlider = document.getElementById('sfx-volume');
+const musicVolumeSlider = document.getElementById('music-volume');
+
+// 1. Sayfa yüklendiğinde mevcut ayarları sürgülere yansıt
+const mevcutAyarlar = getAudioSettings(); 
+
+if (sfxVolumeSlider) {
+    sfxVolumeSlider.value = mevcutAyarlar.effects; // Motorun hafızasındaki efekt sesini sürgüye ata
+}
+if (musicVolumeSlider) {
+    musicVolumeSlider.value = mevcutAyarlar.music; // Motorun hafızasındaki müzik sesini sürgüye ata
+}
+
+// 2. Efekt sürgüsü değiştikçe motoru güncelle
+if (sfxVolumeSlider) {
+    sfxVolumeSlider.addEventListener('input', (e) => {
+        const yeniSfxDegeri = parseFloat(e.target.value);
+        // sesMotoru.js içindeki effects değerini günceller ve kaydeder
+        updateAudioSettings({ effects: yeniSfxDegeri }); 
+    });
+}
+
+// 3. Müzik sürgüsü değiştikçe motoru güncelle
+if (musicVolumeSlider) {
+    musicVolumeSlider.addEventListener('input', (e) => {
+        const yeniMuzikDegeri = parseFloat(e.target.value);
+        // sesMotoru.js içindeki music değerini günceller ve kaydeder
+        updateAudioSettings({ music: yeniMuzikDegeri }); 
+    });
+}
+
 // 🌟 ÇÖZÜM 3: Maçın tamamen bittiğini duyuran yeni Event
 socket.on('matchFinished', (data) => {
     const winner = data.winnerId;

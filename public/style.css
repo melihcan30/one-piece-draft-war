@@ -999,3 +999,46 @@ body {
     0% { transform: rotate(-10deg); }
     100% { transform: rotate(10deg); }
 }
+
+/* ==========================================================================
+   ⚙️ 9. AYARLAR MENÜSÜ VE DİŞLİ ANİMASYONU
+   ========================================================================== */
+#settings-btn {
+    font-size: 1.2rem;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-speed) ease;
+}
+
+/* Çarkın üzerine gelince dönme efekti */
+#settings-btn:hover {
+    transform: scale(1.1);
+    color: var(--gold);
+}
+
+.ayar-grubu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.ayar-grubu label {
+    color: #bdc3c7;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+/* Range (Kaydırma) Çubukları Tasarımı */
+.ayar-grubu input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    accent-color: var(--gold);
+    height: 6px;
+    background: #162024;
+    border-radius: 5px;
+    outline: none;
+}
