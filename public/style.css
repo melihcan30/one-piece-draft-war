@@ -1041,3 +1041,47 @@ body {
     border-radius: 5px;
     outline: none;
 }
+
+/* ==========================================================================
+   ⚓ 10. KORSAN DÜMENİ TASARIMI
+   ========================================================================== */
+.dumen-sistemi {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    /* Çarkın orijinal altın sarısı sınırlarını kaldırıp, kalın ahşap bir çerçeve veriyoruz */
+    border: 16px solid #4a3219;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.9);
+    background: #111;
+    z-index: 5;
+}
+
+/* Çarkın kendi kenarlığını siliyoruz ki dümenin ahşap çerçevesi öne çıksın */
+#wheelCanvas {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 50%;
+    z-index: 10;
+    position: relative;
+    background: transparent;
+}
+
+/* Dümen Kolları (Çerçeveden dışarı taşan tutamaklar) */
+.dumen-kol {
+    position: absolute;
+    width: 28px; /* Kol kalınlığı */
+    height: 118%; /* Çarktan dışarı taşması için %100'den büyük olmalı */
+    background: linear-gradient(to right, #3e2723, #6d4c33, #3e2723);
+    border-radius: 14px; /* Uçlarını yuvarlatır */
+    z-index: 1; /* Çarkın arkasında kalır, sadece uçları görünür */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.7);
+    border: 2px solid #2c1a0e;
+}
+
+/* Kolların Açıları (4 çubuk kesişerek 8 tutamak oluşturur) */
+.kol-1 { transform: rotate(0deg); }
+.kol-2 { transform: rotate(45deg); }
+.kol-3 { transform: rotate(90deg); }
+.kol-4 { transform: rotate(135deg); }

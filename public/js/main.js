@@ -488,8 +488,18 @@ function runSpinAnimation(data) {
     document.querySelector(".wheel-pointer")?.classList.add("pointer-spinning");
 
     state.currentRotation = (state.currentRotation || 0) + 1800 + data.randomDegree;
-    dom.canvas.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
-    dom.canvas.style.transform = `rotate(${state.currentRotation}deg)`;
+    
+    // 🏴‍☠️ YENİ: Canvas yerine kolları olan tüm dümen sistemini hedef alıyoruz
+    const dumenSistemi = document.getElementById('dumen-sistemi');
+    
+    if (dumenSistemi) {
+        dumenSistemi.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
+        dumenSistemi.style.transform = `rotate(${state.currentRotation}deg)`;
+    } else {
+        // Güvenlik önlemi: Eğer HTML tarafında dümen sistemi bulunamazsa eski usul canvas dönsün
+        dom.canvas.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
+        dom.canvas.style.transform = `rotate(${state.currentRotation}deg)`;
+    }
 
     setTimeout(() => {
         handleSpinFinished();
