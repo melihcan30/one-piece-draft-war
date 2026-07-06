@@ -164,13 +164,13 @@ function startGameRoom(currentRoomName) {
     bindRoomCopyButton(currentRoomName);
 
     socket = io();
-    
+
     // 🌟 ÇÖZÜM: Veri isim uyuşmazlığını engellemek için parametreleri çift varyasyonlu gönderiyoruz
     socket.emit('joinRoom', {
         room: currentRoomName,
-        roomName: currentRoomName, 
+        roomName: currentRoomName,
         username: savedName,
-        playerName: savedName, 
+        playerName: savedName,
         avatar: selectedAvatar
     });
 
@@ -216,15 +216,15 @@ function setupSocketListeners() {
             modal.classList.remove('display-none');
             modal.classList.add('display-flex');
         }
-        
+
         const textEl = document.getElementById('mode-selector-text');
         const btns = document.querySelectorAll('.mode-btn');
-        const myId = state.myPlayerNumber; 
+        const myId = state.myPlayerNumber;
 
         btns.forEach(btn => {
             const modeName = btn.getAttribute('data-mode');
             const isPlayed = data.playedModes.includes(modeName);
-        
+
             if (isPlayed) {
                 btn.disabled = true;
                 btn.setAttribute('disabled', 'true');
@@ -248,7 +248,7 @@ function setupSocketListeners() {
             });
         } else {
             if (textEl) textEl.textContent = "🏴‍☠️ Rakibinin Savaş Modu seçmesi bekleniyor, hazırlıklı ol...";
-            btns.forEach(btn => btn.onclick = null); 
+            btns.forEach(btn => btn.onclick = null);
         }
     });
 
@@ -256,12 +256,12 @@ function setupSocketListeners() {
     socket.on('modeSelected', (modeName) => {
         const modeDisplay = document.getElementById('active-mode-display');
         const modal = document.getElementById('mode-selection-modal');
-        
+
         // 🚨 KRİTİK NOKTA: Savaş hesaplamalarında eski modun kullanılmaması için
         // istemcideki mevcut mod değişkenini burada GÜNCELLEMELİSİN.
         // Eğer değişkenin adı farklıysa (örneğin activeMode vb.) burayı ona göre değiştir:
-        state.currentMode = modeName; 
-        
+        state.currentMode = modeName;
+
         if (modeDisplay) modeDisplay.textContent = `AKTİF MOD: ${modeName.toUpperCase()}`;
         if (modal) {
             modal.classList.remove('display-flex');
@@ -291,13 +291,13 @@ function setupSocketListeners() {
         const timerEl = document.getElementById('draft-timer');
         if (timerEl) {
             timerEl.textContent = time;
-            if (time <= 5) timerEl.classList.add('warning'); 
+            if (time <= 5) timerEl.classList.add('warning');
         }
     });
 
     // 🌟 SUNUCUDAN GELEN DRAFT ESNASINDAKİ HAKİ SİNYALİNİ DİNLE
     socket.on('draftHakiClash', () => {
-        triggerHakiLightning(); 
+        triggerHakiLightning();
     });
 
     socket.on('autoPassed', (data) => {
@@ -305,24 +305,24 @@ function setupSocketListeners() {
         if (characterModal && !characterModal.classList.contains('display-none')) {
             characterModal.classList.replace('display-flex', 'display-none');
         }
-        
-        state.activePlayer = data.aktifOyuncu; 
+
+        state.activePlayer = data.aktifOyuncu;
         if (dom.turn) dom.turn.textContent = `Sıra: ${state.activePlayer}. Oyuncu`;
         if (dom.spinButton) dom.spinButton.disabled = state.activePlayer !== state.myPlayerNumber;
         updatePassDisplays(); // 🌟 ÇÖZÜM: Süre bitince pas hakkı göstergesi güncellensin!
     });
 
     socket.on('updateScores', (data) => {
-        // Hem eski hem yeni id ihtimallerine karşı güvenli seçim
-        const p1Score = document.getElementById('p1-match-score') || document.getElementById('p1-score');
-        const p2Score = document.getElementById('p2-match-score') || document.getElementById('p2-score');
+    // HTML'deki GERÇEK ID'yi buraya yazıyoruz
+    const p1ScoreEl = document.getElementById('p1-match-score-global'); 
+    const p2ScoreEl = document.getElementById('p2-match-score-global');
     
-        if (p1Score) p1Score.textContent = data.matchScore.p1;
-        if (p2Score) p2Score.textContent = data.matchScore.p2;
+    if (p1ScoreEl) p1ScoreEl.textContent = data.matchScore.p1;
+    if (p2ScoreEl) p2ScoreEl.textContent = data.matchScore.p2;
     
-        updateRoundDots('p1-round-dots', data.roundScore.p1);
-        updateRoundDots('p2-round-dots', data.roundScore.p2);
-    });
+    updateRoundDots('p1-round-dots', data.roundScore.p1);
+    updateRoundDots('p2-round-dots', data.roundScore.p2);
+});
 
     socket.on('roomStatus', updateRoomStatus);
     socket.on('initGameState', applyInitialServerState);
@@ -357,7 +357,7 @@ function updateRoomStatus(data) {
         state.activePlayer = data.gameState.aktifOyuncu || 1;
         state.passRights[1] = data.gameState.p1PasHakki ?? state.passRights[1];
         state.passRights[2] = data.gameState.p2PasHakki ?? state.passRights[2];
-        
+
         if (data.gameState.aktifKarakterler) {
             state.activeCharacters = data.gameState.aktifKarakterler;
         }
@@ -365,29 +365,32 @@ function updateRoomStatus(data) {
     }
 
     if (data.matchState) {
-        if (data.matchState.status === 'DRAFTING') {
-            gameStarted = true;
-        }
-        const p1Score = document.getElementById('p1-match-score') || document.getElementById('p1-score');
-        const p2Score = document.getElementById('p2-match-score') || document.getElementById('p2-score');
-        if (p1Score) p1Score.textContent = data.matchState.p1MatchScore;
-        if (p2Score) p2Score.textContent = data.matchState.p2MatchScore;
+    if (data.matchState.status === 'DRAFTING') {
+        gameStarted = true;
     }
+    
+    // Aynı gerçek ID'leri buraya da yazıyoruz
+    const p1ScoreEl = document.getElementById('p1-match-score-global');
+    const p2ScoreEl = document.getElementById('p2-match-score-global');
+    
+    if (p1ScoreEl) p1ScoreEl.textContent = data.matchState.p1MatchScore;
+    if (p2ScoreEl) p2ScoreEl.textContent = data.matchState.p2MatchScore;
     
     updateRoundDots('p1-round-dots', data.matchState.p1RoundWins);
     updateRoundDots('p2-round-dots', data.matchState.p2RoundWins);
 }
+}
 
-    updateTurnDisplay();
-    updatePassDisplays();
-    updateActionAvailability();
+updateTurnDisplay();
+updatePassDisplays();
+updateActionAvailability();
 
-    if (!gameStarted && readyState[1] && readyState[2]) {
-        setText(dom.result, "İki tayfa da hazır. Savaş modunun seçilmesi bekleniyor...");
-        if (state.myPlayerNumber === 1) {
-            socket.emit('syncInitialCharacters', karakterler);
-        }
+if (!gameStarted && readyState[1] && readyState[2]) {
+    setText(dom.result, "İki tayfa da hazır. Savaş modunun seçilmesi bekleniyor...");
+    if (state.myPlayerNumber === 1) {
+        socket.emit('syncInitialCharacters', karakterler);
     }
+}
 
 
 function setPlayerCard(playerNumber, playerData) {
@@ -461,7 +464,7 @@ function bindGameControls() {
     dom.modalAcceptButton?.addEventListener("click", requestAccept);
     dom.startBattleButton?.addEventListener("click", requestBattleAction);
     dom.resetButton?.addEventListener("click", () => socket.emit('requestReset'));
-    
+
     dom.readyButton?.addEventListener("click", () => {
         const myNum = state.myPlayerNumber;
         if (!myNum) return;
@@ -483,11 +486,11 @@ function runSpinAnimation(data) {
     setDisabled([dom.spinButton, dom.startBattleButton], true);
     sesCal('spin');
     document.querySelector(".wheel-pointer")?.classList.add("pointer-spinning");
-    
+
     state.currentRotation = (state.currentRotation || 0) + 1800 + data.randomDegree;
     dom.canvas.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
     dom.canvas.style.transform = `rotate(${state.currentRotation}deg)`;
-    
+
     setTimeout(() => {
         handleSpinFinished();
     }, 4000);
@@ -499,7 +502,7 @@ function handleSpinFinished() {
     sesCal('select');
     state.selectedCharacter = getWinningCharacter(state.activeCharacters, state.currentRotation);
     if (!state.selectedCharacter) return;
-    
+
     setHtml(dom.result, `🎯 Savasci: <b>${state.selectedCharacter.isim}</b><br><span style="color:#f1c40f;">Odul: ${formatBeri(state.selectedCharacter.guc)}</span>`);
     updateRoleOptions(dom.modalRoleSelect, state.activePlayer);
     setText(dom.modalCharacterName, state.selectedCharacter.isim.toUpperCase());
@@ -524,13 +527,20 @@ function requestPass() {
 }
 
 // 3. GÜNCELLEME: Pas geçilince otomatik çark döner
-function runPassAction() {
+function runPassAction(data) {
     hideFromFlex(dom.characterModal);
     state.selectedCharacter = null;
+
+    // 🌟 ÇÖZÜM: Sunucudan gelen anlık pas haklarını yerel hafızaya yaz ve ekranı hemen güncelle
+    if (data) {
+        state.passRights[1] = data.p1PasHakki;
+        state.passRights[2] = data.p2PasHakki;
+    }
+    updatePassDisplays(); // Jetonları ve metinleri anında iki oyuncuda da yeniler
+
     if (dom.spinButton) dom.spinButton.disabled = !isMyTurn();
     updateActionAvailability();
-    
-    // 🌟 ÇÖZÜM: Eğer pas geçen ben isem, bekletmeden çarkı tekrar çevir (Eski haline döndü)
+
     if (isMyTurn()) {
         socket.emit('requestSpin');
     }
@@ -559,13 +569,13 @@ function finishDraftIfTeamsAreFull() {
 
     if (p1FullCount === 5 && p2FullCount === 5) {
         setText(dom.turn, "Draft Tamamlandı! Savaş Başlıyor!");
-        setDisabled([dom.spinButton], true); 
-        
+        setDisabled([dom.spinButton], true);
+
         if (state.myPlayerNumber === 1) {
             dom.startBattleButton.disabled = false;
             dom.startBattleButton.classList.remove('display-none');
         }
-        
+
         state.activePlayer = 0;
         updateTurnAura();
         return true;
@@ -596,13 +606,13 @@ function updateTurnAura() {
 function updateTurnDisplay() {
     if (!gameStarted) {
         setText(dom.turn, "Savaşın başlaması için hazır olun!");
-        updateTurnAura(); 
+        updateTurnAura();
         return;
     }
-    
+
     setText(dom.turn, `Sıra: ${state.activePlayer}. Oyuncu (${state.activePlayer === 1 ? 'Kırmızı' : 'Mavi'})`);
-    updateTurnAura(); 
-    
+    updateTurnAura();
+
     if (state.activePlayer !== lastAnnouncedTurn) {
         lastAnnouncedTurn = state.activePlayer;
         triggerTurnToast();
@@ -624,24 +634,24 @@ function triggerTurnToast() {
 function updatePassDisplays() {
     const activePlayer = state.activePlayer || 1;
     const activePassCount = state.passRights[activePlayer];
-    
+
     // Animasyon takibi için hafıza alanı oluşturuyoruz
     if (!state.lastRenderedPassCount) {
         state.lastRenderedPassCount = {};
     }
     const previousPassCount = state.lastRenderedPassCount[activePlayer] ?? activePassCount;
-    
+
     renderRerollTokens(activePassCount, previousPassCount);
-    
+
     // Bir sonraki tık durumu için mevcut hakkı hafızaya al
     state.lastRenderedPassCount[activePlayer] = activePassCount;
-    
+
     setText(dom.rerollCount, `Pas Haklari - P1: ${state.passRights[1]} | P2: ${state.passRights[2]}`);
 }
 
 function renderRerollTokens(passCount, previousPassCount) {
     if (!dom.rerollTokens) return;
-    
+
     // Eğer jetonlar DOM'da henüz yoksa altın sarısı daireleri oluştur
     if (dom.rerollTokens.children.length === 0) {
         dom.rerollTokens.innerHTML = '';
@@ -651,21 +661,21 @@ function renderRerollTokens(passCount, previousPassCount) {
             dom.rerollTokens.appendChild(token);
         }
     }
-    
+
     Array.from(dom.rerollTokens.children).forEach((token, index) => {
         const isActive = index < passCount;
         const wasSpentNow = index === passCount && previousPassCount > passCount;
-        
+
         // Hakkı gitmişse .used sınıfı eklenir (CSS otomatik animasyonu oynatır)
         if (!isActive) {
             token.classList.add('used');
         } else {
             token.classList.remove('used');
         }
-        
+
         // Eğer tam şu an harcandıysa animasyonun sıfırlanıp baştan oynamasını tetikle
         if (wasSpentNow) {
-            void token.offsetWidth; 
+            void token.offsetWidth;
         }
     });
 }
@@ -720,7 +730,7 @@ function showStamp(data) {
     const stamp = document.createElement('div');
     stamp.className = 'floating-emoji'; // CSS'teki kocaman uçan emoji sınıfı
     stamp.textContent = data.stamp;
-    
+
     // Emoji hangi oyuncudan geldiyse ekranın o tarafına konumlandırıyoruz
     if (data.player === 1) {
         stamp.style.left = '15%'; // Sol oyuncunun takımı üstünde
@@ -728,7 +738,7 @@ function showStamp(data) {
         stamp.style.right = '15%'; // Sağ oyuncunun takımı üstünde
     }
     stamp.style.bottom = '25%'; // Ekranın alt-orta kısmından süzülmeye başlasın
-    
+
     dom.stampStage.appendChild(stamp);
     setTimeout(() => stamp.remove(), 2500);
 }
@@ -739,7 +749,7 @@ function updateReadyDisplays() {
         setText(dom.readyButton, readyState[myNum] ? "HAZIRLIK İPTAL ❌" : "YOLCULUĞA HAZIRIM ⚔️");
         dom.readyButton.style.backgroundColor = readyState[myNum] ? "#c0392b" : "#27ae60";
     }
-    
+
     if (dom.readyStatus[1]) dom.readyStatus[1].textContent = readyState[1] ? "HAZIR" : "BEKLENİYOR";
     if (dom.readyStatus[2]) dom.readyStatus[2].textContent = readyState[2] ? "HAZIR" : "BEKLENİYOR";
 
@@ -760,12 +770,12 @@ function updateActionAvailability() {
 
 function requestBattleAction() {
     if (state.myPlayerNumber !== 1) return;
-    
+
     // 🌟 ÇÖZÜM: dom.modeSelect yerine artık yeni state.currentMode'u kullanıyoruz!
-    const battleMode = state.currentMode || "gauntlet"; 
-    
+    const battleMode = state.currentMode || "gauntlet";
+
     const tempResult = document.createElement("div");
-    
+
     if (battleMode === "gauntlet") {
         runGauntletBattle(state.teams[1], state.teams[2], dom.turn, tempResult);
     } else if (battleMode === "matchup") {
@@ -773,7 +783,7 @@ function requestBattleAction() {
     } else if (battleMode === "synergy") {
         runSynergyBattle(state.teams[1], state.teams[2], dom.turn, tempResult);
     }
-    
+
     const finalHtml = tempResult.innerHTML;
     socket.emit('requestBattle', { html: finalHtml, kazanan: detectWinnerFromBattleHtml(finalHtml), senderId: socket.id });
 }
@@ -782,11 +792,11 @@ function detectWinnerFromBattleHtml(html) {
     if (html.includes('data-winner="1"')) return 1;
     if (html.includes('data-winner="2"')) return 2;
     if (html.includes('data-winner="0"')) return 0;
-    
+
     // Eğer diğer modlardan (Gauntlet vb.) eski tarz metin gelirse diye yedek (fallback)
     if (html.includes("1. Oyuncu Kazandı")) return 1;
     if (html.includes("2. Oyuncu Kazandı")) return 2;
-    
+
     return 0;
 }
 
@@ -802,25 +812,25 @@ function renderNextBattleLine() {
     if (battlePopup.currentIndex < battlePopup.lines.length) {
         const line = battlePopup.lines[battlePopup.currentIndex];
         battlePopup.currentIndex++;
-        
+
         // SADECE HAKİ KONTROLÜ: Tam o satır ekrana yazılırken haki varsa efekti patlat!
         if (line.includes('haki-clash')) {
             triggerHakiLightning();
         }
-        
+
         appendBattleLine(line, battlePopup.currentIndex === battlePopup.lines.length);
         return;
     }
-    
+
     document.getElementById('combat-popup-modal')?.remove();
     showVictoryEffects(battlePopup.winnerId); // Senin mevcut zafer efektin
-    
+
     setText(dom.turn, "Karşılaşma sonuçlandı!");
-    
+
     if (state.myPlayerNumber === 1) {
         setTimeout(() => {
             socket.emit('roundFinished', { kazananId: battlePopup.winnerId });
-        }, 4000); 
+        }, 4000);
     }
 }
 
@@ -863,14 +873,14 @@ function updateRoundDots(containerId, winCount) {
 }
 
 // 🌟 ÇÖZÜM 3: Maçın tamamen bittiğini duyuran yeni Event
-    socket.on('matchFinished', (data) => {
-        const winner = data.winnerId;
-        
-        // Ekrana büyük bir zafer uyarısı bas (kendi tasarımına göre bir modal da açtırabilirsin)
-        alert(`🏆 BÜYÜK ZAFER! OYUNCU ${winner} TÜM OYUNU KAZANDI! 🏆`);
-        
-        // Oyun bittiği için kontrolleri kilitle
-        gameStarted = false;
-        if (dom.spinButton) dom.spinButton.disabled = true;
-        if (dom.readyButton) dom.readyButton.classList.add('display-none');
-    });
+socket.on('matchFinished', (data) => {
+    const winner = data.winnerId;
+
+    // Ekrana büyük bir zafer uyarısı bas (kendi tasarımına göre bir modal da açtırabilirsin)
+    alert(`🏆 BÜYÜK ZAFER! OYUNCU ${winner} TÜM OYUNU KAZANDI! 🏆`);
+
+    // Oyun bittiği için kontrolleri kilitle
+    gameStarted = false;
+    if (dom.spinButton) dom.spinButton.disabled = true;
+    if (dom.readyButton) dom.readyButton.classList.add('display-none');
+});

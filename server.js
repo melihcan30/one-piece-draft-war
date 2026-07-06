@@ -338,7 +338,10 @@ function passTurn(socket, room) {
     // Sadece hakkı eksiltiyoruz, sırayı değiştiren (aktifOyuncu = 2) kısımları SİLDİK!
     room.gameState[passKey]--;
 
-    io.to(socket.roomName).emit('runPassAction');
+    io.to(socket.roomName).emit('runPassAction', {
+        p1PasHakki: room.gameState.p1PasHakki,
+        p2PasHakki: room.gameState.p2PasHakki
+    });
     emitRoomStatus(socket.roomName);
 
     // Süreyi oyuncu için sıfırdan başlat
