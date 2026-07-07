@@ -20,8 +20,8 @@ export function drawWheel({ canvas, ctx, characters, colors }) {
         ctx.translate(centerX, centerY);
         ctx.rotate(index * sliceAngle + sliceAngle / 2);
         ctx.textAlign = "right";
-        ctx.fillStyle = "#333";
-        ctx.font = "bold 10px Arial";
+        ctx.fillStyle = "#e4d5b7";
+        ctx.font = "12px 'Poppins', sans-serif";
         ctx.fillText(character.isim, radius - 15, 4);
         ctx.restore();
     });

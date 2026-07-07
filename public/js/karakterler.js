@@ -1,4 +1,12 @@
-export const anaRenkler = ["#ff5252", "#33d9b2", "#ffb142", "#ffda79", "#cd6133", "#ff7979", "#34ace0", "#706fd3", "#b33939", "#218c74"];
+export const anaRenkler = ["#c0392b", // Hazine Kırmızısı
+    "#d35400", // Meyve Turuncusu
+    "#f39c12", // Berries Sarısı
+    "#27ae60", // Korsan Yeşili
+    "#16a085", // Fırtına Cam Göbeği
+    "#2980b9", // Okyanus Mavisi
+    "#8e44ad", // Gizemli Mor
+    "#b33939"  // Poneglyph Bordosu
+    ];
 
 export let karakterler = [
     { id: 1, isim: "Gol D. Roger", guc: 5564800000, taraf: "korsan", seviye: 100 },
