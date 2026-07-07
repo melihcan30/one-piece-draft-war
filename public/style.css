@@ -1071,10 +1071,10 @@ body {
 /* Dümen Kolları (Çerçeveden dışarı taşan tutamaklar) */
 .dumen-kol {
     position: absolute;
-    width: 28px; /* Kol kalınlığı */
-    height: 118%; /* Çarktan dışarı taşması için %100'den büyük olmalı */
+    width: 34px; /* Kol kalınlığı */
+    height: 130%; /* Çarktan dışarı taşması için %100'den büyük olmalı */
     background: linear-gradient(to right, #3e2723, #6d4c33, #3e2723);
-    border-radius: 14px; /* Uçlarını yuvarlatır */
+    border-radius: 17px; /* Uçlarını yuvarlatır */
     z-index: 1; /* Çarkın arkasında kalır, sadece uçları görünür */
     box-shadow: 0 6px 12px rgba(0,0,0,0.7);
     border: 2px solid #2c1a0e;
