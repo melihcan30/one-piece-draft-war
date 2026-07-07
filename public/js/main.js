@@ -984,3 +984,101 @@ socket.on('matchFinished', (data) => {
     if (dom.spinButton) dom.spinButton.disabled = true;
     if (dom.readyButton) dom.readyButton.classList.add('display-none');
 });
+
+// ==========================================
+// 🃏 KARAKTER PASİFLERİ HOVER SİSTEMİ
+// ==========================================
+
+function getCharacterPassives(charName) {
+    let passives = [];
+
+    // Savaş motorundaki (savasMotoru.js) pasif yeteneklere göre metinleri eşleştiriyoruz
+    if (charName.includes("Luffy")) {
+        passives.push("⚡ <b>Lastik İradesi:</b> Enel'e karşı x2 Güç.");
+        passives.push("🔥 <b>ASL:</b> Ace ve Sabo ile +%20 Güç.");
+    }
+    if (charName.includes("Sanji")) {
+        passives.push("💔 <b>Şövalye Ruhu:</b> Kadın karakterlere vuramaz.");
+    }
+    if (charName.includes("Blackbeard") || charName.includes("Teach")) {
+        passives.push("🌑 <b>Karanlık Meyvesi:</b> Meyve kullanıcılarına karşı +%25 avantaj.");
+    }
+    if (charName.includes(" D. ")) {
+        passives.push("🌪️ <b>D.'nin İradesi:</b> Takımda 3 adet 'D.' karakteri varsa +%10 Güç.");
+    }
+    if (charName.includes("Ace") || charName.includes("Sabo")) {
+        passives.push("🔥 <b>ASL:</b> Luffy, Ace ve Sabo ile +%20 Güç.");
+    }
+
+    // Eğer karakterin bir pasifi varsa bunları alt alta birleştir
+    if (passives.length > 0) {
+        return passives.join('<br><br>');
+    }
+    
+    // Pasifi yoksa varsayılan metin döndür
+    return "<span style='color:#bdc3c7;'><i>Belirgin bir pasif yeteneği yok.</i></span>";
+}
+
+// Fare slotun ÜZERİNE geldiğinde çalışır
+document.addEventListener('mouseover', (e) => {
+    // Sadece içi dolu olan slotları hedef al
+    const slot = e.target.closest('.slot[data-filled="true"]');
+    if (!slot) return;
+
+    const charNameEl = slot.querySelector('.char-name');
+    if (!charNameEl) return;
+    const charName = charNameEl.textContent;
+
+    const passivesHTML = getCharacterPassives(charName);
+
+    // Eğer pasif kartı daha önce oluşturulmadıysa oluştur (Performans için)
+    let passiveCard = slot.querySelector('.passive-card');
+    if (!passiveCard) {
+        passiveCard = document.createElement('div');
+        passiveCard.className = 'passive-card';
+        passiveCard.innerHTML = passivesHTML;
+        
+        // CSS dosyasını değiştirmemek için Inline CSS kullanıyoruz
+        passiveCard.style.position = 'absolute';
+        passiveCard.style.top = '0';
+        passiveCard.style.left = '0';
+        passiveCard.style.width = '100%';
+        passiveCard.style.height = '100%';
+        passiveCard.style.backgroundColor = 'rgba(15, 15, 15, 0.95)';
+        passiveCard.style.color = '#fff';
+        passiveCard.style.display = 'flex';
+        passiveCard.style.flexDirection = 'column';
+        passiveCard.style.justifyContent = 'center';
+        passiveCard.style.alignItems = 'center';
+        passiveCard.style.padding = '10px';
+        passiveCard.style.boxSizing = 'border-box';
+        passiveCard.style.zIndex = '10';
+        passiveCard.style.textAlign = 'center';
+        passiveCard.style.fontSize = '0.85rem';
+        passiveCard.style.lineHeight = '1.3';
+        passiveCard.style.borderRadius = 'inherit'; // Slotun köşe yumuşaklığına uyum sağlar
+
+        slot.style.position = 'relative'; // Kartın dışarı taşmasını engeller
+        slot.appendChild(passiveCard);
+    }
+
+    // Orijinal posteri saydam yap (layout kaymasını önlemek için display:none yerine opacity)
+    const poster = slot.querySelector('.wanted-poster');
+    if (poster) poster.style.opacity = '0'; 
+    
+    // Pasif kartını görünür yap
+    passiveCard.style.display = 'flex'; 
+});
+
+// Fare slotun ÜZERİNDEN ÇEKİLDİĞİNDE çalışır
+document.addEventListener('mouseout', (e) => {
+    const slot = e.target.closest('.slot[data-filled="true"]');
+    if (!slot) return;
+
+    const passiveCard = slot.querySelector('.passive-card');
+    const poster = slot.querySelector('.wanted-poster');
+
+    // Pasif kartını gizle, posteri geri getir
+    if (passiveCard) passiveCard.style.display = 'none'; 
+    if (poster) poster.style.opacity = '1'; 
+});
