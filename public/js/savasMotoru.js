@@ -1,7 +1,7 @@
 // =========================================================================
 // 🧠 SİNERJİ VE BONUS MOTORU (Takım İnceleme)
 // =========================================================================
-function takimSinerjileriniHesapla(takim, oyuncuAdi) {
+export function takimSinerjileriniHesapla(takim, oyuncuAdi) {
     // Orijinal takımı bozmamak için derin kopyalama yapıyoruz
     let buffliTakim = takim.filter(c => c).map(c => ({ ...c }));
     let raporlar = [];
@@ -63,6 +63,7 @@ function getSinerjiHTML(s1, s2) {
         if (s2.raporlar.length > 0) html += s2.raporlar.join("<br>") + "<br>";
         html += `</div>`;
     }
+    console.log("Sinerji HTML Oluştu:", html);
     return html;
 }
 

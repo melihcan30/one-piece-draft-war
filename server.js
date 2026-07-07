@@ -360,7 +360,10 @@ function updateServerTeamState(room, slotIndex, character) {
         isim: character.isim,
         guc: character.guc,
         seviye: character.seviye,
-        taraf: character.taraf
+        taraf: character.taraf,
+        tayfa: character.tayfa || "Diğerleri",      // SİNERJİ İÇİN ŞART!
+        etiketler: character.etiketler || [],      // SİNERJİ İÇİN ŞART!
+        cinsiyet: character.cinsiyet || "erkek"    // SANJI İÇİN ŞART!
     };
     room.gameState[powerKey] += character.guc;
 

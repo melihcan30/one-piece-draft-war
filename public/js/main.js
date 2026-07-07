@@ -1,5 +1,5 @@
 import { karakterler, anaRenkler } from './karakterler.js';
-import { runGauntletBattle, runMatchupBattle, runSynergyBattle } from './savasMotoru.js';
+import { runGauntletBattle, runMatchupBattle, runSynergyBattle, takimSinerjileriniHesapla } from './savasMotoru.js';
 import { getAudioSettings, sesCal, sesDurdur, updateAudioSettings } from './sesMotoru.js';
 import { triggerHakiLightning, triggerWinnerConfetti } from './efektler.js';
 import { drawWheel, getWinningCharacter } from './cark.js';
@@ -439,8 +439,43 @@ function hydrateTeamsFromServer(serverState) {
     updatePowerDisplay(1, state.totalPower[1]);
     updatePowerDisplay(2, state.totalPower[2]);
 
+    updateLiveSynergyDisplay();
+
     // Takımların doluluğuna bağlı olarak Savaş butonunu otomatik kontrol et
     finishDraftIfTeamsAreFull();
+}
+
+function updateLiveSynergyDisplay() {
+    // Oyuncuların güncel isimlerini DOM'dan çekelim
+    const p1Name = document.getElementById('p1-name-display')?.textContent || "1. Oyuncu";
+    const p2Name = document.getElementById('p2-name-display')?.textContent || "2. Oyuncu";
+
+    // Canlı sinerji durumlarını hesapla
+    const s1 = takimSinerjileriniHesapla(state.teams[1], p1Name);
+    const s2 = takimSinerjileriniHesapla(state.teams[2], p2Name);
+
+    let synergyLines = [];
+    if (s1.raporlar.length > 0) synergyLines.push(...s1.raporlar);
+    if (s2.raporlar.length > 0) synergyLines.push(...s2.raporlar);
+
+    // Varsa eski canlı sinerji kutusunu temizle (üst üste binmesin)
+    const oldBox = document.getElementById('live-synergy-box');
+    if (oldBox) oldBox.remove();
+
+    // Eğer aktif bir sinerji varsa ahşap panele yeşil bir kutu halinde ekle
+    if (synergyLines.length > 0 && dom.result) {
+        const synergyBox = document.createElement('div');
+        synergyBox.id = 'live-synergy-box';
+        synergyBox.style.marginTop = '12px';
+        synergyBox.style.padding = '8px';
+        synergyBox.style.border = '1px dashed #2ecc71';
+        synergyBox.style.backgroundColor = 'rgba(46, 204, 113, 0.12)';
+        synergyBox.style.borderRadius = '6px';
+        synergyBox.style.textAlign = 'left';
+        synergyBox.style.fontSize = '0.9em';
+        synergyBox.innerHTML = `<b style="color:#2ecc71; display:block; margin-bottom:4px;">✨ CANLI MÜRETTEBAT SİNERJİSİ:</b>` + synergyLines.join('<br>');
+        dom.result.appendChild(synergyBox);
+    }
 }
 
 function renderServerTeam(playerNumber, team) {
