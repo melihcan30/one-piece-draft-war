@@ -12,7 +12,7 @@ function takimSinerjileriniHesapla(takim, oyuncuAdi) {
 
     // 1. 🔥 ASL Kardeşlik Bonusu (Luffy, Ace, Sabo bir aradaysa)
     if (isimler.includes("Monkey D. Luffy") && isimler.includes("Portgas D. Ace") && isimler.includes("Sabo")) {
-        raporlar.push(`🔥 <b>${oyuncuAdi}</b> için <b>ASL Kardeşliği</b> Aktif! (Luffy, Ace, Sabo +%20 Güç Kazandı!)`);
+        raporlar.push(`🔥 <b>${oyuncuAdi}:</b> ASL Kardeşliği! <i>(Luffy, Ace, Sabo +%20 Güç)</i>`);
         buffliTakim.forEach(c => {
             if (["Monkey D. Luffy", "Portgas D. Ace", "Sabo"].includes(c.isim)) {
                 c.guc *= 1.20;
@@ -23,7 +23,7 @@ function takimSinerjileriniHesapla(takim, oyuncuAdi) {
     // 2. 🌪️ D.'nin İradesi Bonusu (Takımda 3 veya daha fazla D. karakteri varsa)
     const dCount = buffliTakim.filter(c => c.etiketler && c.etiketler.includes("D_Iradesi")).length;
     if (dCount >= 3) {
-        raporlar.push(`🌪️ <b>${oyuncuAdi}</b> takımında <b>D.'nin İradesi</b> yankılanıyor! (Tüm D. karakterleri +%10 Güç)`);
+        raporlar.push(`🌪️ <b>${oyuncuAdi}:</b> D.'nin İradesi! <i>(Tüm D. karakterleri +%10 Güç)</i>`);
         buffliTakim.forEach(c => {
             if (c.etiketler && c.etiketler.includes("D_Iradesi")) {
                 c.guc *= 1.10;
@@ -41,7 +41,7 @@ function takimSinerjileriniHesapla(takim, oyuncuAdi) {
 
     Object.keys(tayfaSayilari).forEach(tayfaAdi => {
         if (tayfaSayilari[tayfaAdi] >= 3) {
-            raporlar.push(`⚓ <b>${oyuncuAdi}</b> için <b>${tayfaAdi} Sinerjisi</b> Aktif! (En az 3 ${tayfaAdi} üyesi +%15 Güç Kazandı!)`);
+            raporlar.push(`⚓ <b>${oyuncuAdi}:</b> ${tayfaAdi} Sinerjisi! <i>(En az 3 ${tayfaAdi} üyesi +%15 Güç)</i>`);
             buffliTakim.forEach(c => {
                 if (c.tayfa === tayfaAdi) {
                     c.guc *= 1.15;
@@ -51,6 +51,19 @@ function takimSinerjileriniHesapla(takim, oyuncuAdi) {
     });
 
     return { buffliTakim, raporlar };
+}
+
+// Görsel Sinerji Paneli Oluşturucu Yardımcı Fonksiyon
+function getSinerjiHTML(s1, s2) {
+    let html = "";
+    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) {
+        html += `<div style="background-color: rgba(46, 204, 113, 0.15); border: 1px solid #2ecc71; border-left: 5px solid #2ecc71; padding: 12px; margin-bottom: 15px; border-radius: 5px; font-size: 0.95em;">`;
+        html += `<b style="color: #2ecc71; font-size: 1.1em;">✨ TAKIM SİNERJİLERİ AKTİF!</b><br><br>`;
+        if (s1.raporlar.length > 0) html += s1.raporlar.join("<br>") + "<br>";
+        if (s2.raporlar.length > 0) html += s2.raporlar.join("<br>") + "<br>";
+        html += `</div>`;
+    }
+    return html;
 }
 
 // =========================================================================
@@ -75,8 +88,8 @@ export function hibritDovus(k1, k2) {
     if (k1.isim === "Monkey D. Luffy" && k2.isim === "Enel") k1Multiplier *= 2.0;
     if (k2.isim === "Monkey D. Luffy" && k1.isim === "Enel") k2Multiplier *= 2.0;
 
-    // --- KARANLIK MEYVESİ AVANTAJI (Blackbeard Meyve Güçlerini Kısar) ---
-    if (k1.isim === "Blackbeard" && k2.etiketler && k2.etiketler.includes("Moyve_Kullanicisi")) k1Multiplier *= 1.25;
+    // --- KARANLIK MEYVESİ AVANTAJI ---
+    if (k1.isim === "Blackbeard" && k2.etiketler && k2.etiketler.includes("Meyve_Kullanicisi")) k1Multiplier *= 1.25;
     if (k2.isim === "Blackbeard" && k1.etiketler && k1.etiketler.includes("Meyve_Kullanicisi")) k2Multiplier *= 1.25;
 
     const maxOdul = 5564800000;
@@ -104,7 +117,6 @@ export function hibritDovus(k1, k2) {
 export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     turnDisplay.textContent = "⚔️ Savaş Başladı! Sinerjiler ve Hamleler İnceleniyor...";
     
-    // Sinerjileri hesapla ve uygula
     const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
     const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
 
@@ -113,10 +125,8 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 
     let htmlResult = `<b>🏴‍☠️ GAUNTLET ELEME RAPORU 🏴‍☠️</b><br><br>`;
     
-    // Aktif sinerji raporlarını en üste ekleyelim
-    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
-    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
-    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+    // Sinerji Panelini Ekle
+    htmlResult += getSinerjiHTML(s1, s2);
 
     let idx1 = 0;
     let idx2 = 0;
@@ -173,9 +183,8 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
 
     let htmlResult = `<b>⚔️ MATCHUP SAVAŞ RAPORU ⚔️</b><br><br>`;
     
-    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
-    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
-    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+    // Sinerji Panelini Ekle
+    htmlResult += getSinerjiHTML(s1, s2);
     
     for (let i = 0; i < 5; i++) {
         let c1 = s1.buffliTakim[i];
@@ -187,21 +196,20 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
         let p2Guc = c2.guc || 0;
         let rauntNotu = "";
 
-        // Matchup modu için Sanji kontrolü (Gücü sıfırlayıp karşı tarafı otomatik kazandırır)
         if (c1.isim === "Sanji" && c2.cinsiyet === "kadin") {
             p1Guc = -1;
-            rauntNotu = " 💔 (Sanji kadınlara vuramaz!)";
+            rauntNotu = " 💔 <span style='color:#f1c40f;'>(Sanji kadınlara vuramaz!)</span>";
         } else if (c2.isim === "Sanji" && c1.cinsiyet === "kadin") {
             p2Guc = -1;
-            rauntNotu = " 💔 (Sanji kadınlara vuramaz!)";
+            rauntNotu = " 💔 <span style='color:#f1c40f;'>(Sanji kadınlara vuramaz!)</span>";
         }
 
         if (p1Guc > p2Guc) {
             p1Wins++;
-            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 1. Oyuncu kazandı! (${c1.isim} vs ${c2.isim})${rauntNotu}<br>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> <span style='color:#2ecc71;'>1. Oyuncu kazandı!</span> (${c1.isim} vs ${c2.isim})${rauntNotu}<br>`;
         } else if (p2Guc > p1Guc) {
             p2Wins++;
-            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 2. Oyuncu kazandı! (${c2.isim} vs ${c1.isim})${rauntNotu}<br>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> <span style='color:#e74c3c;'>2. Oyuncu kazandı!</span> (${c2.isim} vs ${c1.isim})${rauntNotu}<br>`;
         } else {
             htmlResult += `⏱️ <b>Raunt ${i+1}:</b> Berabere! (${c1.isim} vs ${c2.isim})<br>`;
         }
@@ -235,9 +243,8 @@ export function runSynergyBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
 
     let htmlResult = `<b>Sinerji ve Rol Bonusları Dahil Toplam Ödüller:</b><br><br>`;
     
-    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
-    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
-    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+    // Sinerji Panelini Ekle
+    htmlResult += getSinerjiHTML(s1, s2);
 
     htmlResult += `🔴 1. Oyuncu: ${p1Toplam.toLocaleString('tr-TR')} ฿<br>`;
     htmlResult += `🔵 2. Oyuncu: ${p2Toplam.toLocaleString('tr-TR')} ฿<br><br>`;
