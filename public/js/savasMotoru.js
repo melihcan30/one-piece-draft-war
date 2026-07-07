@@ -1,11 +1,88 @@
+// =========================================================================
+// 🧠 SİNERJİ VE BONUS MOTORU (Takım İnceleme)
+// =========================================================================
+function takimSinerjileriniHesapla(takim, oyuncuAdi) {
+    // Orijinal takımı bozmamak için derin kopyalama yapıyoruz
+    let buffliTakim = takim.filter(c => c).map(c => ({ ...c }));
+    let raporlar = [];
+
+    if (buffliTakim.length === 0) return { buffliTakim, raporlar };
+
+    const isimler = buffliTakim.map(c => c.isim);
+
+    // 1. 🔥 ASL Kardeşlik Bonusu (Luffy, Ace, Sabo bir aradaysa)
+    if (isimler.includes("Monkey D. Luffy") && isimler.includes("Portgas D. Ace") && isimler.includes("Sabo")) {
+        raporlar.push(`🔥 <b>${oyuncuAdi}</b> için <b>ASL Kardeşliği</b> Aktif! (Luffy, Ace, Sabo +%20 Güç Kazandı!)`);
+        buffliTakim.forEach(c => {
+            if (["Monkey D. Luffy", "Portgas D. Ace", "Sabo"].includes(c.isim)) {
+                c.guc *= 1.20;
+            }
+        });
+    }
+
+    // 2. 🌪️ D.'nin İradesi Bonusu (Takımda 3 veya daha fazla D. karakteri varsa)
+    const dCount = buffliTakim.filter(c => c.etiketler && c.etiketler.includes("D_Iradesi")).length;
+    if (dCount >= 3) {
+        raporlar.push(`🌪️ <b>${oyuncuAdi}</b> takımında <b>D.'nin İradesi</b> yankılanıyor! (Tüm D. karakterleri +%10 Güç)`);
+        buffliTakim.forEach(c => {
+            if (c.etiketler && c.etiketler.includes("D_Iradesi")) {
+                c.guc *= 1.10;
+            }
+        });
+    }
+
+    // 3. ⚓ Grup/Tayfa Sinerjisi (Korsan Tayfaları, Denizciler veya Devrimciler için 3'lü eşleşme)
+    let tayfaSayilari = {};
+    buffliTakim.forEach(c => {
+        if (c.tayfa && c.tayfa !== "Diğerleri") {
+            tayfaSayilari[c.tayfa] = (tayfaSayilari[c.tayfa] || 0) + 1;
+        }
+    });
+
+    Object.keys(tayfaSayilari).forEach(tayfaAdi => {
+        if (tayfaSayilari[tayfaAdi] >= 3) {
+            raporlar.push(`⚓ <b>${oyuncuAdi}</b> için <b>${tayfaAdi} Sinerjisi</b> Aktif! (En az 3 ${tayfaAdi} üyesi +%15 Güç Kazandı!)`);
+            buffliTakim.forEach(c => {
+                if (c.tayfa === tayfaAdi) {
+                    c.guc *= 1.15;
+                }
+            });
+        }
+    });
+
+    return { buffliTakim, raporlar };
+}
+
+// =========================================================================
+// ⚔️ HİBRİT DÖVÜŞ MOTORU & ÖZEL PASİFLER (Zafiyetler)
+// =========================================================================
 export function hibritDovus(k1, k2) {
     if (!k1 || k1.seviye === 0 || k1.guc === 0) return { kazanan: k2, kaybeden: k1, sans: 100 };
     if (!k2 || k2.seviye === 0 || k2.guc === 0) return { kazanan: k1, kaybeden: k2, sans: 100 };
 
+    // --- SANJI ÖZEL ZAFİYETİ ---
+    if (k1.isim === "Sanji" && k2.cinsiyet === "kadin") {
+        return { kazanan: k2, kaybeden: k1, sans: 100, ozelMesaj: `💔 Sanji, ${k2.isim} karşısında eridi! (Kadınlara vuramaz!)` };
+    }
+    if (k2.isim === "Sanji" && k1.cinsiyet === "kadin") {
+        return { kazanan: k1, kaybeden: k2, sans: 100, ozelMesaj: `💔 Sanji, ${k1.isim} karşısında eridi! (Kadınlara vuramaz!)` };
+    }
+
+    let k1Multiplier = 1;
+    let k2Multiplier = 1;
+
+    // --- LASTİK VS ELEKTRİK (Luffy vs Enel) ---
+    if (k1.isim === "Monkey D. Luffy" && k2.isim === "Enel") k1Multiplier *= 2.0;
+    if (k2.isim === "Monkey D. Luffy" && k1.isim === "Enel") k2Multiplier *= 2.0;
+
+    // --- KARANLIK MEYVESİ AVANTAJI (Blackbeard Meyve Güçlerini Kısar) ---
+    if (k1.isim === "Blackbeard" && k2.etiketler && k2.etiketler.includes("Moyve_Kullanicisi")) k1Multiplier *= 1.25;
+    if (k2.isim === "Blackbeard" && k1.etiketler && k1.etiketler.includes("Meyve_Kullanicisi")) k2Multiplier *= 1.25;
+
     const maxOdul = 5564800000;
     
-    const k1Skor = (k1.seviye * 0.85) + ((k1.guc / maxOdul) * 15);
-    const k2Skor = (k2.seviye * 0.85) + ((k2.guc / maxOdul) * 15);
+    const k1Skor = ((k1.seviye * 0.85) + ((k1.guc / maxOdul) * 15)) * k1Multiplier;
+    const k2Skor = ((k2.seviye * 0.85) + ((k2.guc / maxOdul) * 15)) * k2Multiplier;
 
     const toplamSkor = k1Skor + k2Skor;
     const k1KazanmaSansı = (k1Skor / toplamSkor) * 100;
@@ -19,15 +96,28 @@ export function hibritDovus(k1, k2) {
     }
 }
 
+// =========================================================================
+// 🏆 OYUN MODLARI ÇALIŞTIRICILARI
+// =========================================================================
+
 // 1. MOD: GAUNTLET
 export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
-    turnDisplay.textContent = "⚔️ Savaş Başladı! Hamleler İnceleniyor...";
+    turnDisplay.textContent = "⚔️ Savaş Başladı! Sinerjiler ve Hamleler İnceleniyor...";
     
-    let t1 = p1Takim.filter(c => c && c.guc > 0).map(c => ({ ...c }));
-    let t2 = p2Takim.filter(c => c && c.guc > 0).map(c => ({ ...c }));
+    // Sinerjileri hesapla ve uygula
+    const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
+    const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
+
+    let t1 = s1.buffliTakim.filter(c => c && c.guc > 0);
+    let t2 = s2.buffliTakim.filter(c => c && c.guc > 0);
 
     let htmlResult = `<b>🏴‍☠️ GAUNTLET ELEME RAPORU 🏴‍☠️</b><br><br>`;
     
+    // Aktif sinerji raporlarını en üste ekleyelim
+    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
+    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
+    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+
     let idx1 = 0;
     let idx2 = 0;
     let raunt = 1;
@@ -44,12 +134,16 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
         let sonuc = hibritDovus(k1, k2);
         htmlResult += `⏱️ <b>Seri ${raunt}:</b> ${k1.isim} (S${k1.seviye}) vs ${k2.isim} (S${k2.seviye}) ➔ `;
         
+        if (sonuc.ozelMesaj) {
+            htmlResult += `<span style='color:#f1c40f;'>[PASİF] ${sonuc.ozelMesaj}</span><br>`;
+        }
+
         if (sonuc.kazanan.id === k1.id) {
-            htmlResult += `<span style='color:#2ecc71; font-weight:bold;'>${k1.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
+            if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#2ecc71; font-weight:bold;'>${k1.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
             t1[idx1].seviye = Math.max(1, t1[idx1].seviye - 5); 
             idx2++; 
         } else {
-            htmlResult += `<span style='color:#e74c3c; font-weight:bold;'>${k2.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
+            if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#e74c3c; font-weight:bold;'>${k2.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
             t2[idx2].seviye = Math.max(1, t2[idx2].seviye - 5);
             idx1++; 
         }
@@ -59,13 +153,10 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     htmlResult += "<br>";
 
     if (idx1 < t1.length) {
-        // data-winner="1" eklendi
         htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span></div>`;
     } else if (idx2 < t2.length) {
-        // data-winner="2" eklendi
         htmlResult += `<div class="match-final-result" data-winner="2"><span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 2. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span></div>`;
     } else {
-        // data-winner="0" eklendi
         htmlResult += `<div class="match-final-result" data-winner="0"><span style='color:#f1c40f; font-size:1.2em; font-weight:bold;'>🤝 Beraberlik!</span></div>`;
     }
 
@@ -76,31 +167,46 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     let p1Wins = 0;
     let p2Wins = 0;
+    
+    const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
+    const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
+
     let htmlResult = `<b>⚔️ MATCHUP SAVAŞ RAPORU ⚔️</b><br><br>`;
     
-    // 5 Slot için döngü
+    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
+    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
+    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+    
     for (let i = 0; i < 5; i++) {
-        let c1 = p1Takim[i];
-        let c2 = p2Takim[i];
+        let c1 = s1.buffliTakim[i];
+        let c2 = s2.buffliTakim[i];
         
-        if (!c1 || !c2) continue; // Boş slot varsa atla
+        if (!c1 || !c2) continue; 
         
         let p1Guc = c1.guc || 0;
         let p2Guc = c2.guc || 0;
+        let rauntNotu = "";
 
-        // Raunt Kazananını Belirleme ve <br> ile adım adım ayırma
+        // Matchup modu için Sanji kontrolü (Gücü sıfırlayıp karşı tarafı otomatik kazandırır)
+        if (c1.isim === "Sanji" && c2.cinsiyet === "kadin") {
+            p1Guc = -1;
+            rauntNotu = " 💔 (Sanji kadınlara vuramaz!)";
+        } else if (c2.isim === "Sanji" && c1.cinsiyet === "kadin") {
+            p2Guc = -1;
+            rauntNotu = " 💔 (Sanji kadınlara vuramaz!)";
+        }
+
         if (p1Guc > p2Guc) {
             p1Wins++;
-            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 1. Oyuncu kazandı! (${c1.isim} vs ${c2.isim})<br>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 1. Oyuncu kazandı! (${c1.isim} vs ${c2.isim})${rauntNotu}<br>`;
         } else if (p2Guc > p1Guc) {
             p2Wins++;
-            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 2. Oyuncu kazandı! (${c2.isim} vs ${c1.isim})<br>`;
+            htmlResult += `⏱️ <b>Raunt ${i+1}:</b> 2. Oyuncu kazandı! (${c2.isim} vs ${c1.isim})${rauntNotu}<br>`;
         } else {
             htmlResult += `⏱️ <b>Raunt ${i+1}:</b> Berabere! (${c1.isim} vs ${c2.isim})<br>`;
         }
     }
 
-    // MAÇ SONUCU VE KESİN KAZANAN ETİKETİ
     htmlResult += `<br><div><b>Skor:</b> 1. Oyuncu: ${p1Wins} - 2. Oyuncu: ${p2Wins}</div><br>`;
     
     if (p1Wins > p2Wins) {
@@ -118,13 +224,21 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
 export function runSynergyBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     turnDisplay.textContent = "⚔️ Savaş Başladı! Sinerji Gücü Ölçülüyor...";
     
-    let p1Toplam = p1Takim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
-    let p2Toplam = p2Takim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
+    const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
+    const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
+
+    let p1Toplam = s1.buffliTakim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
+    let p2Toplam = s2.buffliTakim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
 
     if (p1Takim[0] && p1Takim[0].seviye >= 90) p1Toplam += 500000000;
     if (p2Takim[0] && p2Takim[0].seviye >= 90) p2Toplam += 500000000;
 
-    let htmlResult = `<b>Sinerji ve Rol Bonusları Dahil Toplam Ödüller:</b><br>`;
+    let htmlResult = `<b>Sinerji ve Rol Bonusları Dahil Toplam Ödüller:</b><br><br>`;
+    
+    if (s1.raporlar.length > 0) htmlResult += s1.raporlar.join("<br>") + "<br>";
+    if (s2.raporlar.length > 0) htmlResult += s2.raporlar.join("<br>") + "<br>";
+    if (s1.raporlar.length > 0 || s2.raporlar.length > 0) htmlResult += "<hr style='border-color:rgba(255,255,255,0.1); margin:10px 0;'>";
+
     htmlResult += `🔴 1. Oyuncu: ${p1Toplam.toLocaleString('tr-TR')} ฿<br>`;
     htmlResult += `🔵 2. Oyuncu: ${p2Toplam.toLocaleString('tr-TR')} ฿<br><br>`;
 
@@ -138,10 +252,8 @@ export function runSynergyBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     const zar = Math.random() * 100;
 
     if (zar <= p1Sans) {
-        // data-winner="1" eklendi
         htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 1. Oyuncu Kazandı! (%${Math.round(p1Sans)} şansla)</span></div>`;
     } else {
-        // data-winner="2" eklendi
         htmlResult += `<div class="match-final-result" data-winner="2"><span style='color:#e74c3c; font-size:1.2em; font-weight:bold;'>🏆 Sinerji Savaşını 2. Oyuncu Kazandı! (%${Math.round(100 - p1Sans)} şansla)</span></div>`;
     }
 
