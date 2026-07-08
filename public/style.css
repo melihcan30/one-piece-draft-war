@@ -1086,3 +1086,72 @@ body {
 .kol-2 { transform: rotate(45deg); }
 .kol-3 { transform: rotate(90deg); }
 .kol-4 { transform: rotate(135deg); }
+
+/* ==========================================================================
+   ⚓ YENİ ÜST PANEL VE SKORBORD SİNERJİ DÜZENİ
+   ========================================================================== */
+
+/* Üst metal plakayı 3 sütun halinde hizala */
+.header-plate {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 20px !important;
+    gap: 15px;
+}
+
+.header-center-title {
+    flex: 2;
+    text-align: center;
+}
+
+.header-right-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+/* Sağ tarafa taşınan mini butonların eski ezici genişlik stillerini sıfırla */
+.header-right-buttons .mini-btn {
+    margin-top: 0 !important;
+    width: auto !important;
+    white-space: nowrap;
+    padding: 6px 14px;
+}
+
+/* Sol taraftaki oda kodunun flex içindeki dengesi */
+#room-share-container.room-share-box {
+    flex: 1;
+    justify-content: flex-start;
+    max-width: fit-content;
+    margin: 0;
+}
+
+/* 🟢 Skorbord Yan Sinerji Yuvaları */
+.live-synergy-container-side {
+    flex: 1;
+    margin: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+    height: 100%;
+}
+
+/* Yeni Sinerji Bilgi Rozeti */
+.live-synergy-badge {
+    background: rgba(46, 204, 113, 0.15);
+    border: 1px solid #2ecc71;
+    color: #2ecc71;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    text-align: center;
+    font-weight: 600;
+    width: 100%;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);
+    animation: fadeIn 0.3s ease-out;
+    line-height: 1.3;
+}

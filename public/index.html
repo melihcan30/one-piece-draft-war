@@ -66,16 +66,39 @@
       <!-- METALİK ÜST PANEL -->
       <header class="game-header">
         <div class="header-plate">
-          <h1 class="main-title">☠️ GRAND LINE DRAFT ☠️</h1>
-          <div class="genel-skor-tablosu">
-            <div class="skor-kutu">
-              Kırmızı Korsan Genel Skor:
-              <strong id="p1-match-score-global">0</strong>
+          <!-- Sol Taraf: Oda Kodu ve Kopyalama Butonu -->
+          <div id="room-share-container" class="room-share-box">
+            <span>Oda Kodu: <strong id="room-code-display">---</strong></span>
+            <button id="copy-btn">Kopyala</button>
+          </div>
+
+          <!-- Orta Taraf: Ana Başlık ve Genel Skorlar -->
+          <div class="header-center-title">
+            <h1 class="main-title">☠️ GRAND LINE DRAFT ☠️</h1>
+            <div class="genel-skor-tablosu">
+              <div class="skor-kutu">
+                Kırmızı Korsan Genel Skor:
+                <strong id="p1-match-score-global">0</strong>
+              </div>
+              <div class="skor-kutu">
+                Mavi Korsan Genel Skor:
+                <strong id="p2-match-score-global">0</strong>
+              </div>
             </div>
-            <div class="skor-kutu">
-              Mavi Korsan Genel Skor:
-              <strong id="p2-match-score-global">0</strong>
-            </div>
+          </div>
+
+          <!-- Sağ Taraf: Kurallar ve Ayarlar Dişlisi -->
+          <div class="header-right-buttons">
+            <button id="rules-btn" class="main-btn rules-btn-style mini-btn">
+              📜 Kurallar
+            </button>
+            <button
+              id="settings-btn"
+              class="main-btn rules-btn-style mini-btn"
+              title="Ayarlar"
+            >
+              ⚙️
+            </button>
           </div>
         </div>
 
@@ -89,6 +112,9 @@
             </div>
           </div>
 
+          <!-- 🌟 Sol Takım Canlı Sinerji Yuvası (1. Oyuncu ile Sayaç Arası) -->
+          <div id="p1-synergy-slot" class="live-synergy-container-side"></div>
+
           <div class="vs-center">
             <div class="status-panel">
               <div id="active-mode-display">AKTİF MOD: BEKLENİYOR...</div>
@@ -96,6 +122,9 @@
             </div>
             <div class="timer-circle" id="draft-timer">24s</div>
           </div>
+
+          <!-- 🌟 Sağ Takım Canlı Sinerji Yuvası (Sayaç ile 2. Oyuncu Arası) -->
+          <div id="p2-synergy-slot" class="live-synergy-container-side"></div>
 
           <div class="player-score p2">
             <div class="player-header-box border-blue">
@@ -105,23 +134,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <div class="util-buttons">
-          <div id="room-share-container" class="room-share-box">
-            <span>Oda Kodu: <strong id="room-code-display">---</strong></span>
-            <button id="copy-btn">Kopyala</button>
-          </div>
-          <button id="rules-btn" class="main-btn rules-btn-style mini-btn">
-            📜 Kurallar
-          </button>
-          <button
-            id="settings-btn"
-            class="main-btn rules-btn-style mini-btn"
-            title="Ayarlar"
-          >
-            ⚙️
-          </button>
         </div>
       </header>
 
