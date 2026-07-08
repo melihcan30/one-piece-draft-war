@@ -301,15 +301,19 @@ function setupSocketListeners() {
     });
 
     socket.on('autoPassed', (data) => {
-        const characterModal = document.getElementById("character-modal");
-        if (characterModal && !characterModal.classList.contains('display-none')) {
-            characterModal.classList.replace('display-flex', 'display-none');
-        }
+        // Modalı güvenli ve projenin kendi domYardimcisi ile kapatıyoruz
+        hideFromFlex(dom.characterModal);
+        
+        // Arka planda aklının o karakterde kalmaması için seçimi sıfırla
+        state.selectedCharacter = null;
 
         state.activePlayer = data.aktifOyuncu;
         if (dom.turn) dom.turn.textContent = `Sıra: ${state.activePlayer}. Oyuncu`;
         if (dom.spinButton) dom.spinButton.disabled = state.activePlayer !== state.myPlayerNumber;
-        updatePassDisplays(); // 🌟 ÇÖZÜM: Süre bitince pas hakkı göstergesi güncellensin!
+        
+        // UI'daki tüm butonların ve pas göstergelerinin anında doğru kilitlenmesini sağla
+        updatePassDisplays(); 
+        updateActionAvailability();
     });
 
     socket.on('updateScores', (data) => {
@@ -1036,7 +1040,6 @@ document.addEventListener('mouseover', (e) => {
     if (!passiveCard) {
         passiveCard = document.createElement('div');
         passiveCard.className = 'passive-card';
-        passiveCard.innerHTML = passivesHTML;
         
         // CSS dosyasını değiştirmemek için Inline CSS kullanıyoruz
         passiveCard.style.position = 'absolute';
@@ -1050,19 +1053,31 @@ document.addEventListener('mouseover', (e) => {
         passiveCard.style.flexDirection = 'column';
         passiveCard.style.justifyContent = 'center';
         passiveCard.style.alignItems = 'center';
-        passiveCard.style.padding = '10px';
+        
+        // PÜRÜZ 2 ÇÖZÜMÜ: Padding'i kıstık ve taşma durumunda kaydırma ekledik
+        passiveCard.style.padding = '4px'; 
         passiveCard.style.boxSizing = 'border-box';
         passiveCard.style.zIndex = '10';
         passiveCard.style.textAlign = 'center';
-        passiveCard.style.fontSize = '0.85rem';
         passiveCard.style.lineHeight = '1.3';
-        passiveCard.style.borderRadius = 'inherit'; // Slotun köşe yumuşaklığına uyum sağlar
+        passiveCard.style.borderRadius = 'inherit'; 
+        passiveCard.style.overflowY = 'auto'; // Yazı taşarsa görünmez scroll ekler
 
         slot.style.position = 'relative'; // Kartın dışarı taşmasını engeller
         slot.appendChild(passiveCard);
     }
 
-    // Orijinal posteri saydam yap (layout kaymasını önlemek için display:none yerine opacity)
+    // PÜRÜZ 1 ÇÖZÜMÜ: İçeriği SADECE kart ilk oluştuğunda değil, HER HOVER yapıldığında güncelle!
+    passiveCard.innerHTML = passivesHTML;
+    
+    // PÜRÜZ 2 ÇÖZÜMÜ (Dinamik Font): Metin çok uzunsa (Örn: 3 pasif) fontu otomatik küçült
+    if (passivesHTML.length > 110) {
+        passiveCard.style.fontSize = '0.65rem';
+    } else {
+        passiveCard.style.fontSize = '0.80rem';
+    }
+
+    // Orijinal posteri saydam yap
     const poster = slot.querySelector('.wanted-poster');
     if (poster) poster.style.opacity = '0'; 
     
