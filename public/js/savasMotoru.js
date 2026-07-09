@@ -1,7 +1,251 @@
+// --- BÜYÜK PASİF YETENEK MOTORU (İSİM DÜZELTMESİ YAPILDI) ---
+const KADIN_KARAKTERLER = ["Nami", "Nico Robin", "Boa Hancock", "Big Mom", "Charlotte Linlin"];
+const KILIC_USTALARI = ["Roronoa Zoro", "Dracule Mihawk", "Silvers Rayleigh", "Shanks", "Kozuki Oden", "Trafalgar Law", "Killer", "Vista", "Shiryu", "Brook"]; 
+const DENIZCI_VE_HUKUMET = ["Monkey D. Garp", "Sengoku", "Akainu", "Aokiji", "Kizaru", "Fujitora", "Ryokugyu", "Smoker", "Koby", "Rob Lucci", "Magellan"];
+const KORSANLAR = ["Monkey D. Luffy", "Roronoa Zoro", "Sanji", "Nami", "Usopp", "Chopper", "Nico Robin", "Franky", "Brook", "Jinbe", "Gol D. Roger", "Whitebeard", "Shanks", "Kaido", "Big Mom", "Buggy", "Eustass Kid", "Trafalgar Law", "Boa Hancock", "Blackbeard", "Marco", "King", "Katakuri", "Crocodile"];
+
+function pasifYetenekleriUygula(takim1, takim2, aktifMod, savasLoglari) {
+    // Her karaktere başlangıç state'i yükle
+    const karakterleriHazirla = (takim) => {
+        takim.forEach(k => {
+            k.aktifGuc = k.guc || k.temelGuc;
+            k.debuffKorumasi = (k.isim === "Akainu" || k.isim === "Kaido"); 
+            k.ilkDebuffEngellendi = false; 
+            k.kadinMi = KADIN_KARAKTERLER.includes(k.isim);
+            k.kilicUstasiMi = KILIC_USTALARI.includes(k.isim);
+        });
+    };
+
+    karakterleriHazirla(takim1);
+    karakterleriHazirla(takim2);
+
+    // Debuff Mekanizması
+    const debuffVur = (hedef, yuzde, kaynakIsmi) => {
+        if (hedef.debuffKorumasi) {
+            savasLoglari.push(`🛡️ [Mutlak Koruma] ${hedef.isim}, ${kaynakIsmi} etkisini yok saydı!`);
+            return 0;
+        }
+        if (hedef.isim === "Kizaru" && !hedef.ilkDebuffEngellendi) {
+            hedef.ilkDebuffEngellendi = true;
+            savasLoglari.push(`✨ [Işık Hızı] Kizaru, ${kaynakIsmi} etkisinden anında sıyrıldı!`);
+            return 0;
+        }
+        if (hedef.isim === "Franky" && !hedef.ilkDebuffEngellendi) {
+            hedef.ilkDebuffEngellendi = true;
+            savasLoglari.push(`🦾 [Süper Zırh] Franky, ${kaynakIsmi} etkisini göğsünde durdurdu!`);
+            return 0;
+        }
+        if (hedef.isim === "Buggy" && hedef.buggyKilicKorumasi && KILIC_USTALARI.includes(kaynakIsmi)) {
+            if(kaynakIsmi !== "Dracule Mihawk") return 0; 
+        }
+
+        let dusus = hedef.aktifGuc * yuzde;
+        hedef.aktifGuc -= dusus;
+        return dusus; 
+    };
+
+    const takimiIsle = (dostTakim, dusmanTakim, takimNo) => {
+        dostTakim.forEach(karakter => {
+            
+            if (karakter.isim === "Roronoa Zoro") {
+                karakter.gauntletYorulmaz = true; 
+            }
+
+            if (karakter.isim === "Sanji") {
+                if (dusmanTakim.some(k => k.kadinMi)) {
+                    karakter.aktifGuc = 0;
+                    savasLoglari.push(`💔 Sanji kadınlara vuramaz! Sanji elendi.`);
+                } else if (dostTakim.some(k => k.kadinMi && k.isim !== "Sanji")) {
+                    karakter.aktifGuc *= 1.10;
+                    savasLoglari.push(`🔥 [Şövalye Ruhu] Sanji takımındaki kadınlar için gücünü %10 artırdı!`);
+                }
+            }
+
+            if (karakter.isim === "Nami" && dusmanTakim.length > 0) {
+                let enGuclu = dusmanTakim.reduce((max, c) => (c.aktifGuc > max.aktifGuc) ? c : max);
+                debuffVur(enGuclu, 0.10, "Mirage Tempo");
+                savasLoglari.push(`☁️ [Mirage Tempo] Nami, ${enGuclu.isim} karakterinin gücünü %10 azalttı.`);
+            }
+
+            if (karakter.isim === "Usopp") {
+                let dostToplam = dostTakim.reduce((sum, c) => sum + c.aktifGuc, 0);
+                let dusmanToplam = dusmanTakim.reduce((sum, c) => sum + c.aktifGuc, 0);
+                if (dostToplam < dusmanToplam) {
+                    karakter.aktifGuc *= 1.25;
+                    savasLoglari.push(`🤥 [Tanrı Usopp] Usopp blöf yaptı ve kendi gücünü %25 artırdı!`);
+                }
+            }
+
+            if (karakter.isim === "Chopper") {
+                let luffyVar = dostTakim.some(k => k.isim === "Monkey D. Luffy");
+                dostTakim.forEach(k => k.aktifGuc *= luffyVar ? 1.15 : 1.10);
+                savasLoglari.push(`💊 [Doktor] Chopper takıma +%${luffyVar ? 15 : 10} şifa verdi!`);
+            }
+
+            if (karakter.isim === "Nico Robin") {
+                dusmanTakim.sinerjiYariYariya = true; 
+                savasLoglari.push(`🌸 [Arkeolog] Robin rakibin sinerjisini %50 zayıflattı!`);
+            }
+
+            if (karakter.isim === "Franky") {
+                dusmanTakim.forEach(k => debuffVur(k, 0.05, "Radical Beam"));
+                savasLoglari.push(`⭐ [Süper] Franky rakip takımı %5 zayıflattı!`);
+            }
+
+            if (karakter.isim === "Jinbe") {
+                dostTakim.filter(k => k.etiketler && (k.etiketler.includes("Kaptan") || k.etiketler.includes("Lider")))
+                         .forEach(k => k.aktifGuc *= 1.12);
+                savasLoglari.push(`🌊 [Birinci Oğul] Jinbe kaptanların gücünü %12 artırdı!`);
+            }
+
+            if (karakter.isim === "Shanks") {
+                dusmanTakim.forEach(k => {
+                    let dusus = k.seviye >= 95 ? 0.03 : (k.seviye >= 90 ? 0.06 : (k.seviye >= 80 ? 0.09 : 0.15));
+                    debuffVur(k, dusus, "Fatih Hakisi");
+                });
+                savasLoglari.push(`👑 [Haki] Shanks rakibin iradesini kırdı!`);
+            }
+
+            if (karakter.isim === "Dracule Mihawk" && dusmanTakim.some(k => k.kilicUstasiMi)) {
+                karakter.aktifGuc *= 1.20;
+                savasLoglari.push(`🦅 [Dünyanın En Güçlüsü] Mihawk, kılıç ustalarına karşı gücünü %20 artırdı!`);
+            }
+
+            if (karakter.isim === "Buggy") {
+                karakter.buggyKilicKorumasi = true; 
+                let sans = (Math.random() * 0.40) - 0.10; 
+                karakter.aktifGuc += karakter.aktifGuc * sans;
+                savasLoglari.push(`🤡 [Şans İlahı] Buggy'nin gücü rastgele değişti!`);
+            }
+
+            if (karakter.isim === "Gol D. Roger") {
+                dostTakim.forEach(k => k.aktifGuc *= 1.12);
+                if (dusmanTakim.some(k => DENIZCI_VE_HUKUMET.includes(k.isim))) {
+                    karakter.aktifGuc *= 1.12;
+                    savasLoglari.push(`☠️ [Korsanlar Kralı] Roger takımını ve kendini coşturdu!`);
+                }
+            }
+
+            if (karakter.isim === "Whitebeard") {
+                dusmanTakim.forEach(k => debuffVur(k, 0.08, "Gura Gura"));
+                savasLoglari.push(`🌍 [Deprem] Whitebeard rakip takımı %8 sarstı!`);
+            }
+
+            if (karakter.isim === "Monkey D. Dragon") {
+                dusmanTakim.denizciSinerjiIptal = true; 
+                dostTakim.ekstraPasHakki = true; 
+                savasLoglari.push(`🌪️ [Devrim] Dragon Hükümet sinerjilerini bozdu! (+1 Pas Hakkı)`);
+            }
+
+            if (karakter.isim === "Monkey D. Garp") {
+                if (dusmanTakim.some(k => k.isim === "Monkey D. Luffy" || k.isim === "Portgas D. Ace")) {
+                    karakter.aktifGuc *= 0.88; 
+                    savasLoglari.push(`👴 [Merhamet] Garp torunlarını görünce gücü %12 düştü...`);
+                } else if (dusmanTakim.some(k => KORSANLAR.includes(k.isim))) {
+                    karakter.aktifGuc *= 1.12;
+                }
+            }
+
+            if (karakter.isim === "Kaido" && (aktifMod === "GAUNTLET" || aktifMod === "MATCHUP")) {
+                karakter.aktifGuc *= 1.12;
+                savasLoglari.push(`🐉 [Canavar] Kaido 1v1 savaşta gücünü %12 artırdı!`);
+            }
+
+            if (karakter.isim === "Big Mom" || karakter.isim === "Charlotte Linlin") {
+                dusmanTakim.filter(k => k.seviye < karakter.seviye).forEach(k => {
+                    let calinan = debuffVur(k, 0.05, "Soul Pocus");
+                    karakter.aktifGuc += calinan;
+                });
+                savasLoglari.push(`🍬 [Ruh Pocusu] Big Mom zayıflardan ruh çaldı!`);
+            }
+
+            if (karakter.isim === "Sengoku") {
+                dostTakim.filter(k => DENIZCI_VE_HUKUMET.includes(k.isim)).forEach(k => k.aktifGuc *= 1.12);
+                dusmanTakim.sinerjiKilitli = true; 
+                savasLoglari.push(`☸️ [Buda] Sengoku denizcileri coşturdu ve rakip sinerjisini kilitledi!`);
+            }
+
+            if (karakter.isim === "Akainu") {
+                dusmanTakim.filter(k => KORSANLAR.includes(k.isim)).forEach(k => debuffVur(k, 0.05, "Magma"));
+                savasLoglari.push(`🌋 [Mutlak Adalet] Akainu korsanları %5 eritti!`);
+            }
+
+            if (karakter.isim === "Aokiji" && dusmanTakim.length > 0) {
+                let enZayif = dusmanTakim.reduce((min, c) => (c.aktifGuc < min.aktifGuc) ? c : min);
+                debuffVur(enZayif, 0.15, "Ice Age");
+                savasLoglari.push(`❄️ [Buz Çağı] Aokiji, ${enZayif.isim} karakterini dondurdu!`);
+            }
+
+            if (karakter.isim === "Kizaru") {
+                karakter.aktifGuc *= 1.07;
+            }
+
+            if (karakter.isim === "Silvers Rayleigh") {
+                dostTakim.filter(k => k.seviye < 90).forEach(k => k.aktifGuc *= 1.15);
+                savasLoglari.push(`🕶️ [Kara Kral] Rayleigh gençleri eğitti! (+%15)`);
+            }
+
+            if (karakter.isim === "Kozuki Oden") {
+                if (karakter.rol === "Savaşçı" || karakter.rol === "Tank") karakter.aktifGuc *= 1.12;
+                if (dusmanTakim.some(k => k.isim === "Kaido")) {
+                    karakter.aktifGuc *= 1.15;
+                    savasLoglari.push(`⚔️ [İntikam] Oden, Kaido'ya karşı öfkeyle doldu!`);
+                }
+            }
+
+            if (karakter.isim === "Sabo") {
+                if (dostTakim.some(k => k.isim === "Monkey D. Luffy")) karakter.aktifGuc *= 1.12;
+                dusmanTakim.forEach(k => debuffVur(k, 0.05, "Alev Pençesi"));
+                savasLoglari.push(`🔥 [Miras] Sabo düşmanları alevlerle sardı!`);
+            }
+
+            if (karakter.isim === "Boa Hancock") {
+                if (dostTakim.some(k => k.isim === "Monkey D. Luffy")) {
+                    karakter.aktifGuc *= 1.15;
+                }
+                dusmanTakim.forEach(k => {
+                    if (!k.kadinMi && k.isim !== "Monkey D. Luffy") debuffVur(k, 0.10, "Aşk Oku");
+                });
+                savasLoglari.push(`🏹 [Mero Mero] Hancock erkekleri taşa çevirdi!`);
+            }
+
+            if (karakter.isim === "Eustass Kid") {
+                let hurdaSayisi = dusmanTakim.filter(k => k.kilicUstasiMi || k.isim === "Franky").length;
+                karakter.aktifGuc += (karakter.aktifGuc * (0.08 * hurdaSayisi));
+                if(hurdaSayisi > 0) savasLoglari.push(`🧲 [Manyetik] Kid rakiplerin metallerini çekti!`);
+            }
+
+            if (karakter.isim === "Trafalgar Law" && dusmanTakim.length > 0 && dostTakim.length > 0) {
+                let enGucluDusman = dusmanTakim.reduce((max, c) => (c.aktifGuc > max.aktifGuc) ? c : max);
+                let enZayifDost = dostTakim.reduce((min, c) => (c.aktifGuc < min.aktifGuc) ? c : min);
+                
+                let calinan = debuffVur(enGucluDusman, 0.10, "ROOM: Shambles");
+                enZayifDost.aktifGuc += calinan;
+                savasLoglari.push(`🔵 [Shambles] Law, ${enGucluDusman.isim}'den çaldığı gücü ${enZayifDost.isim}'e aktardı!`);
+            }
+        });
+    };
+
+    takimiIsle(takim1, takim2, 1);
+    takimiIsle(takim2, takim1, 2);
+
+    takim1.forEach(k => k.guc = k.aktifGuc);
+    takim2.forEach(k => k.guc = k.aktifGuc);
+    
+    return { takim1Duzenlenmis: takim1, takim2Duzenlenmis: takim2 };
+}
+
 // =========================================================================
 // 🧠 SİNERJİ VE BONUS MOTORU (Takım İnceleme)
 // =========================================================================
 export function takimSinerjileriniHesapla(takim, oyuncuAdi) {
+    // --- YENİ EKLENEN KİLİT MEKANİZMASI ---
+    if (takim.sinerjiKilitli) {
+        return { buffliTakim: takim, raporlar: [`⚓ <b>${oyuncuAdi}:</b> Rakibin baskısıyla sinerji kilitlendi!`] };
+    }
+    // Robin/Dragon için zayıflatma
+    let sinerjiCarpani = takim.sinerjiYariYariya ? 0.5 : 1.0;
+    
     // Orijinal takımı bozmamak için derin kopyalama yapıyoruz
     let buffliTakim = takim.filter(c => c).map(c => ({ ...c }));
     let raporlar = [];
@@ -74,14 +318,6 @@ export function hibritDovus(k1, k2) {
     if (!k1 || k1.seviye === 0 || k1.guc === 0) return { kazanan: k2, kaybeden: k1, sans: 100 };
     if (!k2 || k2.seviye === 0 || k2.guc === 0) return { kazanan: k1, kaybeden: k2, sans: 100 };
 
-    // --- SANJI ÖZEL ZAFİYETİ ---
-    if (k1.isim === "Sanji" && k2.cinsiyet === "kadin") {
-        return { kazanan: k2, kaybeden: k1, sans: 100, ozelMesaj: `💔 Sanji, ${k2.isim} karşısında eridi! (Kadınlara vuramaz!)` };
-    }
-    if (k2.isim === "Sanji" && k1.cinsiyet === "kadin") {
-        return { kazanan: k1, kaybeden: k2, sans: 100, ozelMesaj: `💔 Sanji, ${k1.isim} karşısında eridi! (Kadınlara vuramaz!)` };
-    }
-
     let k1Multiplier = 1;
     let k2Multiplier = 1;
 
@@ -129,6 +365,16 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     // Sinerji Panelini Ekle
     htmlResult += getSinerjiHTML(s1, s2);
 
+    // 🌟 PASİFLERİ UYGULA VE EKRANA YAZDIR
+    let pasifLoglari = [];
+    pasifYetenekleriUygula(t1, t2, "GAUNTLET", pasifLoglari); // Yeni motoru burada çalıştırıyoruz!
+
+    if (pasifLoglari.length > 0) {
+        htmlResult += `<div style="background: rgba(241, 196, 15, 0.1); border-left: 4px solid #f1c40f; padding: 10px; margin-bottom: 15px; font-size: 0.9em;">`;
+        htmlResult += `<b style="color: #f1c40f;">✨ AKTİF PASİF YETENEKLER</b><br><br>`;
+        htmlResult += pasifLoglari.join("<br>") + `</div>`;
+    }
+
     let idx1 = 0;
     let idx2 = 0;
     let raunt = 1;
@@ -151,11 +397,19 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 
         if (sonuc.kazanan.id === k1.id) {
             if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#2ecc71; font-weight:bold;'>${k1.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
-            t1[idx1].seviye = Math.max(1, t1[idx1].seviye - 5); 
+            
+            // ⚔️ ZORO PASİFİ: Eğer gauntletYorulmaz bayrağı yoksa seviye düşür
+            if (!k1.gauntletYorulmaz) {
+                t1[idx1].seviye = Math.max(1, t1[idx1].seviye - 5); 
+            }
             idx2++; 
         } else {
             if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#e74c3c; font-weight:bold;'>${k2.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
-            t2[idx2].seviye = Math.max(1, t2[idx2].seviye - 5);
+            
+            // ⚔️ ZORO PASİFİ: Eğer gauntletYorulmaz bayrağı yoksa seviye düşür
+            if (!k2.gauntletYorulmaz) {
+                t2[idx2].seviye = Math.max(1, t2[idx2].seviye - 5);
+            }
             idx1++; 
         }
         raunt++;

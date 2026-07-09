@@ -995,7 +995,33 @@ socket.on('matchFinished', (data) => {
 function getCharacterPassives(charName) {
     let passives = [];
 
+    // 1. Gelen ismin içindeki olası HTML etiketlerini (<br>, <b> vb.) temizliyoruz
+    // 2. Başındaki ve sonundaki boşlukları silip tamamen küçük harfe çeviriyoruz
+    const temizIsim = charName.replace(/<[^>]*>?/gm, '').trim().toLowerCase();
+
     // Savaş motorundaki (savasMotoru.js) pasif yeteneklere göre metinleri eşleştiriyoruz
+    // 3. Karakteri güncel veritabanından bul
+    const char = [...karakterler]
+        .sort((a, b) => b.isim.length - a.isim.length)
+        .find(c => {
+            const dbIsim = c.isim.trim().toLowerCase();
+            // Gelen string veritabanındaki isimle başlıyor mu? (Örn: "big mom4.388..." startsWith "big mom")
+            return temizIsim.startsWith(dbIsim);
+        });
+
+    // DEDEKTİF LOGU (Sorunu görmek için)
+    if (!char) {
+        console.warn("❌ Karakter Bulunamadı! Aranan isim:", `'${temizIsim}'`);
+    } else {
+        console.log("✅ Karakter bulundu:", char.isim);
+    }
+
+    // 4. Eğer karakterin pasif objesi varsa onu dinamik olarak çek ve şık bir şekilde yazdır
+    if (char && char.pasif) {
+        return `<span style="color: #f1c40f; font-size: 1.1em; letter-spacing: 1px;">✨ <b>${char.pasif.isim}</b></span><br><br>${char.pasif.aciklama}`;
+    }
+
+    // 5. Henüz veritabanına pasif objesi GİRİLMEMİŞ karakterler için eski sistemden devam et
     if (charName.includes("Luffy")) {
         passives.push("⚡ <b>Lastik İradesi:</b> Enel'e karşı x2 Güç.");
         passives.push("🔥 <b>ASL:</b> Ace ve Sabo ile +%20 Güç.");
@@ -1013,13 +1039,13 @@ function getCharacterPassives(charName) {
         passives.push("🔥 <b>ASL:</b> Luffy, Ace ve Sabo ile +%20 Güç.");
     }
 
-    // Eğer karakterin bir pasifi varsa bunları alt alta birleştir
+    // Eğer karakterin eski sistemde bir pasifi varsa bunları alt alta birleştir
     if (passives.length > 0) {
         return passives.join('<br><br>');
     }
     
     // Pasifi yoksa varsayılan metin döndür
-    return "<span style='color:#bdc3c7;'><i>Belirgin bir pasif yeteneği yok.</i></span>";
+    return "<span style='color:#bdc3c7;'><i>Henüz belirgin bir pasif yeteneği keşfedilmedi.</i></span>";
 }
 
 // Fare slotun ÜZERİNE geldiğinde çalışır
@@ -1069,7 +1095,7 @@ document.addEventListener('mouseover', (e) => {
     // PÜRÜZ 1 ÇÖZÜMÜ: İçeriği SADECE kart ilk oluştuğunda değil, HER HOVER yapıldığında güncelle!
     passiveCard.innerHTML = passivesHTML;
     
-    // PÜRÜZ 2 ÇÖZÜMÜ (Dinamik Font): Metin çok uzunsa (Örn: 3 pasif) fontu otomatik küçült
+    // PÜRÜZ 2 ÇÖZÜMÜ (Dinamik Font): Metin çok uzunsa fontu otomatik küçült
     if (passivesHTML.length > 110) {
         passiveCard.style.fontSize = '0.65rem';
     } else {
@@ -1084,15 +1110,25 @@ document.addEventListener('mouseover', (e) => {
     passiveCard.style.display = 'flex'; 
 });
 
-// Fare slotun ÜZERİNDEN ÇEKİLDİĞİNDE çalışır
+// YENİ EKLENEN KRİTİK PARÇA: Fare slotun üzerinden ÇIKTIĞINDA sistemi eski haline döndür
 document.addEventListener('mouseout', (e) => {
     const slot = e.target.closest('.slot[data-filled="true"]');
     if (!slot) return;
 
+    // Titremeyi (flickering) engellemek için farenin gerçekten slottan dışarı çıkıp çıkmadığını kontrol et
+    // Eğer fare slotun içindeki başka bir elementin (örn: metnin) üzerine geçiyorsa işlemi iptal et
+    if (e.relatedTarget && slot.contains(e.relatedTarget)) {
+        return; 
+    }
+
     const passiveCard = slot.querySelector('.passive-card');
     const poster = slot.querySelector('.wanted-poster');
 
-    // Pasif kartını gizle, posteri geri getir
-    if (passiveCard) passiveCard.style.display = 'none'; 
-    if (poster) poster.style.opacity = '1'; 
+    // Pasif yazısını gizle ve posteri tekrar tam görünür (%100 opak) yap
+    if (passiveCard) {
+        passiveCard.style.display = 'none'; 
+    }
+    if (poster) {
+        poster.style.opacity = '1'; 
+    }
 });

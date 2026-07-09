@@ -363,8 +363,16 @@ function updateServerTeamState(room, slotIndex, character) {
         taraf: character.taraf,
         tayfa: character.tayfa || "Diğerleri",      // SİNERJİ İÇİN ŞART!
         etiketler: character.etiketler || [],      // SİNERJİ İÇİN ŞART!
-        cinsiyet: character.cinsiyet || "erkek"    // SANJI İÇİN ŞART!
+        cinsiyet: character.cinsiyet || "erkek",    // SANJI İÇİN ŞART!
+        pasif : character.pasif || null
     };
+
+    // 🐉 DRAGON PASİFİ: Takıma katıldığında anında +1 Pas Hakkı verir
+    if (character.isim === "Monkey D. Dragon") {
+        const passKey = room.activePlayer === 1 ? 'p1PasHakki' : 'p2PasHakki';
+        room.gameState[passKey] += 1;
+    }
+
     room.gameState[powerKey] += character.guc;
 
     // ⚡ YENİ EKLENEN HAKİ MEKANİĞİ ⚡
