@@ -582,6 +582,8 @@ function autoPassTurn(roomName) {
     room.activePlayer = room.gameState.aktifOyuncu;
     io.to(roomName).emit('autoPassed', { aktifOyuncu: room.gameState.aktifOyuncu });
     emitRoomStatus(roomName);
+
+    startDraftTimer(roomName);
 }
 
 server.listen(PORT, () => {
