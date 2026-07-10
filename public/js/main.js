@@ -1032,9 +1032,6 @@ if (musicVolumeSlider) {
 socket.on('matchFinished', (data) => {
     const winner = data.winnerId;
 
-    // Ekrana büyük bir zafer uyarısı bas (kendi tasarımına göre bir modal da açtırabilirsin)
-    alert(`🏆 BÜYÜK ZAFER! OYUNCU ${winner} TÜM OYUNU KAZANDI! 🏆`);
-
     // Oyun bittiği için kontrolleri kilitle
     gameStarted = false;
     if (dom.spinButton) dom.spinButton.disabled = true;
