@@ -365,14 +365,17 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     // Sinerji Panelini Ekle
     htmlResult += getSinerjiHTML(s1, s2);
 
-    // 🌟 PASİFLERİ UYGULA VE EKRANA YAZDIR
+    // 🌟 PASİFLERİ UYGULA VE ADIM ADIM EKRANA YAZDIR
     let pasifLoglari = [];
-    pasifYetenekleriUygula(t1, t2, "GAUNTLET", pasifLoglari); // Yeni motoru burada çalıştırıyoruz!
+    pasifYetenekleriUygula(t1, t2, "GAUNTLET", pasifLoglari);
 
     if (pasifLoglari.length > 0) {
-        htmlResult += `<div style="background: rgba(241, 196, 15, 0.1); border-left: 4px solid #f1c40f; padding: 10px; margin-bottom: 15px; font-size: 0.9em;">`;
-        htmlResult += `<b style="color: #f1c40f;">✨ AKTİF PASİF YETENEKLER</b><br><br>`;
-        htmlResult += pasifLoglari.join("<br>") + `</div>`;
+        htmlResult += `<b style="color: #f1c40f;">✨ AKTİF PASİF YETENEKLER</b><br>`;
+        // KUTU YERİNE SPAN KULLANIYORUZ: Böylece sistem her pasifi tek bir adım (tıklama) olarak algılar
+        pasifLoglari.forEach(log => {
+            htmlResult += `<span style="background: rgba(241, 196, 15, 0.15); border-left: 3px solid #f1c40f; padding: 4px 8px; color: #d4af37; display: inline-block; margin-bottom: 4px;">${log}</span><br>`;
+        });
+        htmlResult += `<br>`;
     }
 
     let idx1 = 0;
@@ -397,16 +400,12 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
 
         if (sonuc.kazanan.id === k1.id) {
             if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#2ecc71; font-weight:bold;'>${k1.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
-            
-            // ⚔️ ZORO PASİFİ: Eğer gauntletYorulmaz bayrağı yoksa seviye düşür
             if (!k1.gauntletYorulmaz) {
                 t1[idx1].seviye = Math.max(1, t1[idx1].seviye - 5); 
             }
             idx2++; 
         } else {
             if (!sonuc.ozelMesaj) htmlResult += `<span style='color:#e74c3c; font-weight:bold;'>${k2.isim} kazandı!</span> (%${sonuc.sans} şans)<br>`;
-            
-            // ⚔️ ZORO PASİFİ: Eğer gauntletYorulmaz bayrağı yoksa seviye düşür
             if (!k2.gauntletYorulmaz) {
                 t2[idx2].seviye = Math.max(1, t2[idx2].seviye - 5);
             }
@@ -416,7 +415,6 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     }
 
     htmlResult += "<br>";
-
     if (idx1 < t1.length) {
         htmlResult += `<div class="match-final-result" data-winner="1"><span style='color:#2ecc71; font-size:1.2em; font-weight:bold;'>🏆 1. Oyuncu Gauntlet Savaşını Kazandı! Denizin Hakimi Oldu!</span></div>`;
     } else if (idx2 < t2.length) {
@@ -428,7 +426,7 @@ export function runGauntletBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) 
     resultDisplay.innerHTML = htmlResult;
 }
 
-// 2. MOD: MATCHUP
+// 2. MOD: MATCHUP (Birebir Kapışma - Pasifler Eklendi)
 export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     let p1Wins = 0;
     let p2Wins = 0;
@@ -436,14 +434,30 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
     const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
 
+    // Orijinal dizilimi bozmamak (boş slotları korumak) için kopyalıyoruz
+    let t1 = s1.buffliTakim.map(c => c ? {...c} : null);
+    let t2 = s2.buffliTakim.map(c => c ? {...c} : null);
+
     let htmlResult = `<b>⚔️ MATCHUP SAVAŞ RAPORU ⚔️</b><br><br>`;
-    
-    // Sinerji Panelini Ekle
     htmlResult += getSinerjiHTML(s1, s2);
     
+    // 🌟 PASİFLERİ UYGULA (Sadece dolu slotları motora gönderiyoruz)
+    let doluT1 = t1.filter(c => c !== null);
+    let doluT2 = t2.filter(c => c !== null);
+    let pasifLoglari = [];
+    pasifYetenekleriUygula(doluT1, doluT2, "MATCHUP", pasifLoglari);
+
+    if (pasifLoglari.length > 0) {
+        htmlResult += `<b style="color: #f1c40f;">✨ AKTİF PASİF YETENEKLER</b><br>`;
+        pasifLoglari.forEach(log => {
+            htmlResult += `<span style="background: rgba(241, 196, 15, 0.15); border-left: 3px solid #f1c40f; padding: 4px 8px; color: #d4af37; display: inline-block; margin-bottom: 4px;">${log}</span><br>`;
+        });
+        htmlResult += `<br>`;
+    }
+
     for (let i = 0; i < 5; i++) {
-        let c1 = s1.buffliTakim[i];
-        let c2 = s2.buffliTakim[i];
+        let c1 = t1[i];
+        let c2 = t2[i];
         
         if (!c1 || !c2) continue; 
         
@@ -483,23 +497,38 @@ export function runMatchupBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     resultDisplay.innerHTML = htmlResult;
 }
 
-// 3. MOD: ROLE SYNERGY
+// 3. MOD: SYNERGY (Sinerji ve Pasiflerin Toplam Güç Savaşı)
 export function runSynergyBattle(p1Takim, p2Takim, turnDisplay, resultDisplay) {
     turnDisplay.textContent = "⚔️ Savaş Başladı! Sinerji Gücü Ölçülüyor...";
     
     const s1 = takimSinerjileriniHesapla(p1Takim, "1. Oyuncu");
     const s2 = takimSinerjileriniHesapla(p2Takim, "2. Oyuncu");
 
-    let p1Toplam = s1.buffliTakim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
-    let p2Toplam = s2.buffliTakim.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
+    let t1 = s1.buffliTakim.filter(c => c !== null);
+    let t2 = s2.buffliTakim.filter(c => c !== null);
 
+    let htmlResult = `<b>Sinerji ve Pasif Bonusları Dahil Toplam Ödüller:</b><br><br>`;
+    htmlResult += getSinerjiHTML(s1, s2);
+
+    // 🌟 PASİFLERİ UYGULA (Toplam Güce Etki Edecek)
+    let pasifLoglari = [];
+    pasifYetenekleriUygula(t1, t2, "SYNERGY", pasifLoglari);
+
+    if (pasifLoglari.length > 0) {
+        htmlResult += `<b style="color: #f1c40f;">✨ AKTİF PASİF YETENEKLER</b><br>`;
+        pasifLoglari.forEach(log => {
+            htmlResult += `<span style="background: rgba(241, 196, 15, 0.15); border-left: 3px solid #f1c40f; padding: 4px 8px; color: #d4af37; display: inline-block; margin-bottom: 4px;">${log}</span><br>`;
+        });
+        htmlResult += `<br>`;
+    }
+
+    // Pasifler uygulandıktan sonraki YENİ güçleri topluyoruz
+    let p1Toplam = t1.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
+    let p2Toplam = t2.reduce((sum, char) => sum + (char ? char.guc : 0), 0);
+
+    // Kaptan (Seviye 90+) bonusu
     if (p1Takim[0] && p1Takim[0].seviye >= 90) p1Toplam += 500000000;
     if (p2Takim[0] && p2Takim[0].seviye >= 90) p2Toplam += 500000000;
-
-    let htmlResult = `<b>Sinerji ve Rol Bonusları Dahil Toplam Ödüller:</b><br><br>`;
-    
-    // Sinerji Panelini Ekle
-    htmlResult += getSinerjiHTML(s1, s2);
 
     htmlResult += `🔴 1. Oyuncu: ${p1Toplam.toLocaleString('tr-TR')} ฿<br>`;
     htmlResult += `🔵 2. Oyuncu: ${p2Toplam.toLocaleString('tr-TR')} ฿<br><br>`;
