@@ -148,7 +148,7 @@ function joinRoom(socket, playerData) {
                 p2RoundWins: 0,
                 modeSelector: 1,
                 turnTimer: null,
-                timeLeft: 30
+                timeLeft: 60
             }
         };
     }
@@ -529,7 +529,7 @@ function startDraftTimer(roomName) {
     if (!room) return;
 
     clearInterval(room.matchState.turnTimer);
-    room.matchState.timeLeft = 30;
+    room.matchState.timeLeft = 60;
 
     io.to(roomName).emit('timerStarted', room.matchState.timeLeft);
 
