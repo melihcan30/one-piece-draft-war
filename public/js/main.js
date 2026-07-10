@@ -308,7 +308,7 @@ function setupSocketListeners() {
         state.selectedCharacter = null;
 
         state.activePlayer = data.aktifOyuncu;
-        if (dom.turn) dom.turn.textContent = `Sıra: ${state.activePlayer}. Oyuncu`;
+        updateTurnDisplay();
         if (dom.spinButton) dom.spinButton.disabled = state.activePlayer !== state.myPlayerNumber;
         
         // UI'daki tüm butonların ve pas göstergelerinin anında doğru kilitlenmesini sağla
@@ -327,6 +327,42 @@ function setupSocketListeners() {
     updateRoundDots('p1-round-dots', data.roundScore.p1);
     updateRoundDots('p2-round-dots', data.roundScore.p2);
 });
+
+// 🌟 ÇÖZÜM: Bir oyuncu 2 zafere ulaştığında sonucu ekrana şık bir şekilde bas
+    socket.on('matchFinished', (data) => {
+        const modal = document.getElementById('match-finished-modal');
+        const winnerText = document.getElementById('match-winner-text');
+
+        // Kazananın kendi ismini tespit et
+        const winnerName = data.winnerId === 1
+            ? (document.getElementById('p1-name-display')?.textContent || "1. Oyuncu")
+            : (document.getElementById('p2-name-display')?.textContent || "2. Oyuncu");
+
+        if (winnerText) {
+            winnerText.innerHTML = `🏆 <b>${winnerName}</b> bu büyük denizin hakimi oldu!`;
+        }
+
+        if (modal) {
+            modal.classList.remove('display-none');
+            modal.classList.add('display-flex');
+        }
+
+        // Oyuncular arkada başka işleme tıklayamasın diye 'Hazır' butonunu kilitle
+        if (dom.readyButton) dom.readyButton.disabled = true;
+    });
+
+    // 🌟 ÇÖZÜM: 'Yeniden Oyna' sinyali geldiğinde modalı kapat ve ekranı temizle
+    socket.on('runFullReset', () => {
+        const modal = document.getElementById('match-finished-modal');
+        if (modal) {
+            modal.classList.remove('display-flex');
+            modal.classList.add('display-none');
+        }
+        if (dom.readyButton) dom.readyButton.disabled = false;
+        
+        // UI alanlarını mevcut reset metodunla temizle
+        if (typeof resetArena === 'function') resetArena();
+    });
 
     socket.on('roomStatus', updateRoomStatus);
     socket.on('initGameState', applyInitialServerState);
@@ -402,6 +438,12 @@ function setPlayerCard(playerNumber, playerData) {
     const name = playerData?.username || playerData?.name || `Korsan ${playerNumber} Bekleniyor...`;
     setText(byId(`p${playerNumber}-name-display`), name);
     setText(byId(`p${playerNumber}-avatar-display`), playerData?.avatar || "🏴‍☠️");
+
+    // 🌟 ÇÖZÜM: Savaş ekranı üst panelindeki "1. OYUNCU" ve "2. OYUNCU" yazılarını güncelliyoruz
+    const topScoreNameElement = document.getElementById(`p${playerNumber}-name-score`);
+    if (topScoreNameElement) {
+        topScoreNameElement.textContent = name.toUpperCase();
+    }
 }
 
 function applyInitialServerState(serverState) {
@@ -508,6 +550,16 @@ function bindGameControls() {
         if (!myNum) return;
         const currentReadyState = !readyState[myNum];
         socket.emit('setReady', currentReadyState);
+    });
+
+    // 🌟 ÇÖZÜM: Maç bitiş ekranındaki butonların tıklanma fonksiyonları
+    document.getElementById('play-again-btn')?.addEventListener('click', () => {
+        socket.emit('requestFullReset'); // Tüm skorları sıfırlar
+    });
+
+    document.getElementById('back-to-lobby-btn')?.addEventListener('click', () => {
+        // Parametreleri (Oda kodunu) URL'den temizler ve sayfayı yenileyip lobiye atar
+        window.location.href = window.location.pathname;
     });
 }
 
@@ -651,19 +703,20 @@ function updateTurnAura() {
     });
 }
 
+// 🌟 ÇÖZÜM: Sıra rengini ve oyuncu isimlerini dinamik olarak düzenleyen fonksiyon
 function updateTurnDisplay() {
-    if (!gameStarted) {
-        setText(dom.turn, "Savaşın başlaması için hazır olun!");
-        updateTurnAura();
-        return;
-    }
+    if (!dom.turn) return;
 
-    setText(dom.turn, `Sıra: ${state.activePlayer}. Oyuncu (${state.activePlayer === 1 ? 'Kırmızı' : 'Mavi'})`);
-    updateTurnAura();
+    // Oyuncu isimlerini DOM üzerinden çekiyoruz (yoksa varsayılan isim)
+    const p1Name = document.getElementById('p1-name-display')?.textContent || "1. OYUNCU";
+    const p2Name = document.getElementById('p2-name-display')?.textContent || "2. OYUNCU";
 
-    if (state.activePlayer !== lastAnnouncedTurn) {
-        lastAnnouncedTurn = state.activePlayer;
-        triggerTurnToast();
+    if (state.activePlayer === 1) {
+        dom.turn.textContent = `SIRA: ${p1Name.toUpperCase()}`;
+        dom.turn.style.color = "#e74c3c"; // Neon Kırmızı
+    } else {
+        dom.turn.textContent = `SIRA: ${p2Name.toUpperCase()}`;
+        dom.turn.style.color = "#3498db"; // Neon Mavi
     }
 }
 

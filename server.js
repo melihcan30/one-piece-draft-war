@@ -104,6 +104,36 @@ io.on('connection', socket => {
             emitRoomStatus(socket.roomName);
         }
     });
+
+    // 🌟 ÇÖZÜM: Tüm maçı ve modları sıfırlayan yeni event
+    socket.on('requestFullReset', () => {
+        const roomName = socket.roomName;
+        const room = rooms[roomName];
+        if (!room) return;
+
+        // Maç verilerini tamamen sıfırla (Skorlar ve oynanmış modlar silinir)
+        room.matchState = {
+            status: 'WAITING',
+            p1MatchScore: 0,
+            p2MatchScore: 0,
+            currentMode: null,
+            playedModes: [],
+            currentRound: 1,
+            p1RoundWins: 0,
+            p2RoundWins: 0,
+            modeSelector: 1,
+            turnTimer: null,
+            timeLeft: 60
+        };
+
+        // Takım ve draft verilerini sıfırla
+        room.gameState = createInitialGameState();
+        room.activePlayer = 1;
+        room.ready = { 1: false, 2: false };
+
+        io.to(roomName).emit('runFullReset');
+        emitRoomStatus(roomName);
+    });
 });
 
 function createInitialGameState() {
