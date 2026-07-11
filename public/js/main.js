@@ -1072,16 +1072,6 @@ function getCharacterPassives(charName) {
     }
 
     // 5. Henüz veritabanına pasif objesi GİRİLMEMİŞ karakterler için eski sistemden devam et
-    if (charName.includes("Luffy")) {
-        passives.push("⚡ <b>Lastik İradesi:</b> Enel'e karşı x2 Güç.");
-        passives.push("🔥 <b>ASL:</b> Ace ve Sabo ile +%20 Güç.");
-    }
-    if (charName.includes("Sanji")) {
-        passives.push("💔 <b>Şövalye Ruhu:</b> Kadın karakterlere vuramaz.");
-    }
-    if (charName.includes("Blackbeard") || charName.includes("Teach")) {
-        passives.push("🌑 <b>Karanlık Meyvesi:</b> Meyve kullanıcılarına karşı +%25 avantaj.");
-    }
     if (charName.includes(" D. ")) {
         passives.push("🌪️ <b>D.'nin İradesi:</b> Takımda 3 adet 'D.' karakteri varsa +%10 Güç.");
     }

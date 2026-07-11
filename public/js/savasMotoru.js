@@ -47,6 +47,40 @@ function pasifYetenekleriUygula(takim1, takim2, aktifMod, savasLoglari) {
     const takimiIsle = (dostTakim, dusmanTakim, takimNo) => {
         dostTakim.forEach(karakter => {
             
+            if (karakter.isim.includes("Luffy")) {
+                // --- 1. Denizlerdeki En Korkunç Güç ---
+                
+                // Takımdaki herkese (kendisi hariç takım arkadaşlarına) %15 güç ver
+                dostTakim.forEach(dost => {
+                    if (dost.isim !== karakter.isim) {
+                        dost.aktifGuc *= 1.15;
+                    }
+                });
+                savasLoglari.push(`🌊 [Denizlerdeki En Korkunç Güç] Luffy etrafındakilere ilham vererek takım arkadaşlarının gücünü %15 artırdı!`);
+
+                // Rakipte seviyesi 92 ve üstü olan biri varsa Luffy'nin gücü %15 artar
+                if (dusmanTakim.some(k => k.seviye >= 92)) {
+                    karakter.aktifGuc *= 1.15;
+                    savasLoglari.push(`👑 [Sarsılmaz İrade] Karşısındaki güçlü rakipler Luffy'nin iradesini tetikledi! Luffy'nin gücü %15 arttı.`);
+                }
+
+                // --- 2. Güneş Tanrısı - Joyboy ---
+                
+                // Takımdaki korsan sayısına göre gücünü artır (Kendisi de bir korsan olduğu için onu da sayar)
+                let korsanSayisi = dostTakim.filter(k => k.taraf === "korsan").length;
+                if (korsanSayisi > 0) {
+                    let ekstraGucCarpani = 1 + (korsanSayisi * 0.05);
+                    karakter.aktifGuc *= ekstraGucCarpani;
+                    savasLoglari.push(`☀️ [Güneş Tanrısı] Takımdaki korsanlar Joyboy'un ritmine katıldı! Luffy'nin gücü %${korsanSayisi * 5} arttı.`);
+                }
+
+                // Tüm takımı (kendisi dahil) debuff'lara karşı korumalı hale getir
+                dostTakim.forEach(dost => {
+                    dost.debuffKorumasi = true;
+                });
+                savasLoglari.push(`🛡️ [Joyboy'un Özgürlüğü] Luffy tüm takımını negatif etkilere karşı koruma altına aldı!`);
+            }
+
             if (karakter.isim === "Roronoa Zoro") {
                 karakter.gauntletYorulmaz = true; 
             }
@@ -161,6 +195,13 @@ function pasifYetenekleriUygula(takim1, takim2, aktifMod, savasLoglari) {
                     karakter.aktifGuc += calinan;
                 });
                 savasLoglari.push(`🍬 [Ruh Pocusu] Big Mom zayıflardan ruh çaldı!`);
+            }
+
+            if (karakter.isim === "Blackbeard") {
+                if (dusmanTakim.some(k => k.etiketler && k.etiketler.includes("Meyve_Kullanicisi"))) {
+                    karakter.aktifGuc *= 1.25;
+                    savasLoglari.push(`🌑 [Karanlık Girdap] Karasakal, Şeytan Meyvesi kullanıcılarına karşı gücünü %25 artırdı!`);
+                }
             }
 
             if (karakter.isim === "Sengoku") {
@@ -329,9 +370,6 @@ export function hibritDovus(k1, k2) {
     if (k1.isim === "Monkey D. Luffy" && k2.isim === "Enel") k1Multiplier *= 2.0;
     if (k2.isim === "Monkey D. Luffy" && k1.isim === "Enel") k2Multiplier *= 2.0;
 
-    // --- KARANLIK MEYVESİ AVANTAJI ---
-    if (k1.isim === "Blackbeard" && k2.etiketler && k2.etiketler.includes("Meyve_Kullanicisi")) k1Multiplier *= 1.25;
-    if (k2.isim === "Blackbeard" && k1.etiketler && k1.etiketler.includes("Meyve_Kullanicisi")) k2Multiplier *= 1.25;
 
     const maxOdul = 5564800000;
     

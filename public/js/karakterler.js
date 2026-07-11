@@ -37,11 +37,16 @@ export let karakterler = [
     { id: 9, isim: "Big Mom", guc: 4388000000, taraf: "korsan", seviye: 95, tayfa: "Koca Ana", cinsiyet: "kadin", etiketler: ["Meyve_Kullanicisi", "Kral_Hakisi", "Yonko"], pasif: {
     isim: "Ruh Pocusu",
     aciklama: "Seviyesi kendisinden düşük olan tüm rakiplerin temel gücünün %5'ini çalarak kendi gücüne ekler."} },
-    { id: 10, isim: "Blackbeard", guc: 3996000000, taraf: "korsan", seviye: 99, tayfa: "Karasakal", cinsiyet: "erkek", etiketler: ["D_Iradesi", "Meyve_Kullanicisi", "Yonko", "Karanlik"] },
+    { id: 10, isim: "Blackbeard", guc: 3996000000, taraf: "korsan", seviye: 99, tayfa: "Karasakal", cinsiyet: "erkek", etiketler: ["D_Iradesi", "Meyve_Kullanicisi", "Yonko", "Karanlik"], pasif: {
+    isim: "Karanlık Meyvesi (Yami Yami no Mi)",
+    aciklama: "Rakip takımda 'Meyve Kullanıcısı' varsa onlara karşı mutlak avantaj sağlayarak gücünü +%25 artırır."} 
+    },
     { id: 11, isim: "Akainu", guc: 5000000000, taraf: "denizci", seviye: 98, tayfa: "Denizci", cinsiyet: "erkek", etiketler: ["Meyve_Kullanicisi", "Mutlak_Adalet"], pasif: {
     isim: "Mutlak Adalet",
     aciklama: "Rakipten gelen hiçbir güç azaltma etkisinden etkilenmez. Rakipteki tüm Korsanların gücünü ekstra -%5 azaltır."} },
-    { id: 12, isim: "Monkey D. Luffy", guc: 3000000000, taraf: "korsan", seviye: 98, tayfa: "Hasır Şapka", cinsiyet: "erkek", etiketler: ["D_Iradesi", "Meyve_Kullanicisi", "Kral_Hakisi", "Supernova", "Yonko", "ASL"] },
+    { id: 12, isim: "Monkey D. Luffy", guc: 3000000000, taraf: "korsan", seviye: 98, tayfa: "Hasır Şapka", cinsiyet: "erkek", etiketler: ["D_Iradesi", "Meyve_Kullanicisi", "Kral_Hakisi", "Supernova", "Yonko", "ASL"], pasif: {
+    isim: "Denizlerdeki En Korkunç Güç & Güneş Tanrısı",
+    aciklama: "Takıma +%15 güç verir, rakiplerde 92+ seviye varsa kendi gücü +%15 artar. Takımdaki her korsan için gücü +%5 artar ve tüm takımı debufflara karşı korur."} },
     { id: 13, isim: "Aokiji", guc: 3000000000, taraf: "korsan", seviye: 95, tayfa: "Karasakal", cinsiyet: "erkek", etiketler: ["Meyve_Kullanicisi"], pasif: {
     isim: "Buz Çağı",
     aciklama: "Savaş başında soğuk dalgasıyla rakip takımın en güçsüz karakterini dondurarak gücünü doğrudan -%15 düşürür."} },
