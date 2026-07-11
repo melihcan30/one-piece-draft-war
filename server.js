@@ -400,7 +400,10 @@ function updateServerTeamState(room, slotIndex, character) {
     // 🐉 DRAGON PASİFİ: Takıma katıldığında anında +1 Pas Hakkı verir
     if (character.isim === "Monkey D. Dragon") {
         const passKey = room.activePlayer === 1 ? 'p1PasHakki' : 'p2PasHakki';
-        room.gameState[passKey] += 1;
+        // Sınırı 5 olarak sabitliyoruz
+        if (room.gameState[passKey] < 5) {
+            room.gameState[passKey] += 1;
+        }
     }
 
     room.gameState[powerKey] += character.guc;

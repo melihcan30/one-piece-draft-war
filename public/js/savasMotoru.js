@@ -133,8 +133,12 @@ function pasifYetenekleriUygula(takim1, takim2, aktifMod, savasLoglari) {
 
             if (karakter.isim === "Monkey D. Dragon") {
                 dusmanTakim.denizciSinerjiIptal = true; 
-                dostTakim.ekstraPasHakki = true; 
-                savasLoglari.push(`🌪️ [Devrim] Dragon Hükümet sinerjilerini bozdu! (+1 Pas Hakkı)`);
+                if (dostTakim.mevcutPasHakki < 5) { 
+                    dostTakim.ekstraPasHakki = true;
+                    savasLoglari.push(`🌪️ [Devrim] Dragon Hükümet sinerjilerini bozdu! (+1 Pas Hakkı)`);
+                } else {
+                    savasLoglari.push(`🌪️ [Devrim] Dragon Hükümet sinerjilerini bozdu! (Pas hakkı dolu)`);
+                }
             }
 
             if (karakter.isim === "Monkey D. Garp") {
