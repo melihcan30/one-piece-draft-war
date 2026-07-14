@@ -8,7 +8,7 @@ function pasifYetenekleriUygula(takim1, takim2, aktifMod, savasLoglari) {
     // Her karaktere başlangıç state'i yükle
     const karakterleriHazirla = (takim) => {
         takim.forEach(k => {
-            k.aktifGuc = k.guc || k.temelGuc;
+            k.aktifGuc = k.guc ?? k.temelGuc;
             k.debuffKorumasi = (k.isim === "Akainu" || k.isim === "Kaido"); 
             k.ilkDebuffEngellendi = false; 
             k.kadinMi = KADIN_KARAKTERLER.includes(k.isim);
