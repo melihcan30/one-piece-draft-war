@@ -455,9 +455,40 @@ function syncActivePlayer(socket, data) {
     emitRoomStatus(socket.roomName);
 }
 
-function spinWheel(socket) {
+// Yeni Olasılık Motorlu spinWheel
+function spinWheel(socket, room) {
+    const aktifKarakterler = room.gameState.aktifKarakterler;
+    if (!aktifKarakterler || aktifKarakterler.length === 0) return;
+
+    // 1. ZAR ATIMI: %100 üzerinden rastgele bir sayı çek
+    const roll = Math.random() * 100;
+    let secilenTier = "Common";
+
+    // 2. ŞANS AĞIRLIKLARI (Belirttiğin oranlar)
+    if (roll <= 5) {
+        secilenTier = "Legendary"; // %5
+    } else if (roll <= 20) {
+        secilenTier = "Epic";      // %15 (5 + 15 = 20)
+    } else if (roll <= 55) {
+        secilenTier = "Rare";      // %35 (20 + 35 = 55)
+    } else {
+        secilenTier = "Common";    // %45 (Geri kalanlar)
+    }
+
+    // 3. Seçilen zorluktaki karakterlerden bir havuz oluştur
+    let havuz = aktifKarakterler.filter(c => c.tier === secilenTier);
+
+    // KORUMA: Eğer çarkta o Tier'dan karakter kalmadıysa, havuzu tekrar tüm karakterler yap
+    if (havuz.length === 0) {
+        havuz = aktifKarakterler;
+    }
+
+    // 4. Havuzun içinden KESİN KAZANACAK karakteri belirle
+    const kazananKarakter = havuz[Math.floor(Math.random() * havuz.length)];
+
+    // 5. Client'a rastgele derece değil, HEDEF KARAKTERİN ID'sini gönder
     io.to(socket.roomName).emit('runSpinAnimation', {
-        randomDegree: Math.floor(Math.random() * 360)
+        targetId: kazananKarakter.id
     });
 }
 

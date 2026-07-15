@@ -577,16 +577,39 @@ function runSpinAnimation(data) {
     sesCal('spin');
     document.querySelector(".wheel-pointer")?.classList.add("pointer-spinning");
 
-    state.currentRotation = (state.currentRotation || 0) + 1800 + data.randomDegree;
+    // --- 🎯 HİLELİ ÇARK MATEMATİĞİ BAŞLANGICI ---
     
-    // 🏴‍☠️ YENİ: Canvas yerine kolları olan tüm dümen sistemini hedef alıyoruz
+    // 1. Hedef karakterin çarktaki sırasını (index) bul
+    const targetIndex = state.activeCharacters.findIndex(c => c.id === data.targetId);
+    
+    // 2. Bir dilimin kaç derece olduğunu hesapla
+    const sliceDegree = 360 / state.activeCharacters.length;
+
+    // 3. İbrenin dilimin her seferinde aynı noktasında durmaması için rastgele küçük bir sapma (offset) ekle
+    // Dilimin %10'u ile %90'ı arasında rastgele bir yer seçiyoruz ki inandırıcı olsun
+    const randomOffset = Math.random() * (sliceDegree * 0.8) + (sliceDegree * 0.1);
+
+    // 4. İbrenin o dilimde durması için gereken mutlak hedef açıyı hesapla (Tersine Mühendislik)
+    const targetMod = (630 - (targetIndex * sliceDegree) - randomOffset) % 360;
+
+    // 5. Çarkın şu anki açısından, hedefe ulaşmak için kaç derece dönmesi gerektiğini bul
+    let addedRotation = (targetMod - (state.currentRotation % 360) + 360) % 360;
+    
+    // 6. Görsel şölen için en az 5 tam tur (1800 derece) ekle
+    addedRotation += 1800; 
+
+    // Yeni rotasyonu sisteme kaydet
+    state.currentRotation = (state.currentRotation || 0) + addedRotation;
+    
+    // --- 🎯 HİLELİ ÇARK MATEMATİĞİ BİTİŞİ ---
+
+    // 🏴‍☠️ Animasyonu Tetikle
     const dumenSistemi = document.getElementById('dumen-sistemi');
     
     if (dumenSistemi) {
         dumenSistemi.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
         dumenSistemi.style.transform = `rotate(${state.currentRotation}deg)`;
     } else {
-        // Güvenlik önlemi: Eğer HTML tarafında dümen sistemi bulunamazsa eski usul canvas dönsün
         dom.canvas.style.transition = "transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)";
         dom.canvas.style.transform = `rotate(${state.currentRotation}deg)`;
     }
